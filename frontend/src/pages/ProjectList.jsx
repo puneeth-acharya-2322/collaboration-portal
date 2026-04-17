@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useContext } from 'react'
+import AuthContext from '../context/AuthContext'
 import ProjectCard from '../components/ProjectCard'
 import LockOverlay from '../components/LockOverlay'
 import { dummyProjects } from '../data/dummyProjects'
@@ -66,6 +67,7 @@ export default function ProjectList({ filters }) {
   const [allProjects, setAllProjects] = useState([])
   const [sort, setSort] = useState('best')
   const [loading, setLoading] = useState(true)
+  const { user, token } = useContext(AuthContext)
 
   // Fetch projects from API on mount, fall back to dummyProjects
   useEffect(() => {
@@ -73,7 +75,13 @@ export default function ProjectList({ filters }) {
 
     async function fetchProjects() {
       try {
-        const res = await fetch(API_URL)
+        const endpoint = user 
+          ? 'http://localhost:3001/api/projects/all' 
+          : 'http://localhost:3001/api/projects/public'
+        
+        const headers = user ? { Authorization: `Bearer ${token}` } : {}
+
+        const res = await fetch(endpoint, { headers })
         if (!res.ok) throw new Error('API error')
         const json = await res.json()
         if (!cancelled) setAllProjects(json.data ?? json)
@@ -86,11 +94,12 @@ export default function ProjectList({ filters }) {
 
     fetchProjects()
     return () => { cancelled = true }
-  }, [])
+  }, [user, token])
 
   const filtered = applySortOrder(applyClientFilters(allProjects, filters), sort)
-  const visibleCards = filtered.slice(0, LOCK_AFTER)
-  const isLocked = filtered.length > LOCK_AFTER
+  // If user is logged in, show all; otherwise lock after 4
+  const visibleCards = user ? filtered : filtered.slice(0, LOCK_AFTER)
+  const isLocked = !user && filtered.length > LOCK_AFTER
 
   return (
     <div>

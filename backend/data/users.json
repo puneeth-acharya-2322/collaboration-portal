@@ -1,0 +1,98 @@
+[
+  {
+    "id": "a11333fe-8267-423a-8774-a747341d5082",
+    "role": "admin",
+    "status": "approved",
+    "skills": [],
+    "domain": [],
+    "availability": "",
+    "bio": "",
+    "createdAt": "2026-04-16T04:54:45.088Z",
+    "name": "Test User",
+    "email": "test@admin.com",
+    "password": "$2b$10$XVMPLXambYfI77/MCLO64O0LbG6luI7louZENATrhS7RtNXVTKabC"
+  },
+  {
+    "id": "fa1dee4e-236e-43b4-a604-45d4c3cec762",
+    "name": "Dr. Priya Nair",
+    "email": "priya.nair@manipal.edu",
+    "password": "$2b$10$x9hE9e.G3YSA1Co0I67a4.2PBYllwj26VFuyGIiNujuYKL5ptAsbC",
+    "role": "user",
+    "status": "approved",
+    "skills": [
+      "Python",
+      "PyTorch",
+      "Computer Vision"
+    ],
+    "domain": [
+      "Medical Imaging"
+    ],
+    "availability": "Available now",
+    "bio": "Ophthalmology researcher focusing on diabetic retinopathy.",
+    "createdAt": "2026-04-16T05:02:45.766Z",
+    "department": "AI in Healthcare, KMC",
+    "designation": "Assistant Professor",
+    "institution": "MAHE, Manipal"
+  },
+  {
+    "id": "e11559e2-ef8d-4ae9-afb4-aa0c00e3f8c1",
+    "name": "Dr. Arun Shetty",
+    "email": "arun.shetty@manipal.edu",
+    "password": "$2b$10$x9hE9e.G3YSA1Co0I67a4.2PBYllwj26VFuyGIiNujuYKL5ptAsbC",
+    "role": "user",
+    "status": "approved",
+    "skills": [
+      "Python",
+      "HuggingFace",
+      "BERT"
+    ],
+    "domain": [
+      "NLP in Healthcare"
+    ],
+    "availability": "Available in 1 month",
+    "bio": "Internal Medicine, working on automated clinical summarisation.",
+    "createdAt": "2026-04-16T05:02:45.767Z"
+  },
+  {
+    "id": "a64601c9-d29b-4df4-a285-a492bd93471d",
+    "role": "user",
+    "status": "approved",
+    "skills": [],
+    "domain": [],
+    "availability": "",
+    "bio": "",
+    "department": "",
+    "designation": "",
+    "institution": "",
+    "preferences": {
+      "domains": [],
+      "projectTypes": [],
+      "collaboratorRoles": []
+    },
+    "createdAt": "2026-04-17T05:03:16.838Z",
+    "name": "Arun",
+    "email": "arun@test.com",
+    "password": "$2b$10$Xou2n.XIC52P2jIFHKBJG.4.UXPtCUwB/C7sKK/yZp9mqD9GpSEp."
+  },
+  {
+    "id": "207931c5-bca6-4246-83b0-9cac8369b316",
+    "role": "user",
+    "status": "pending",
+    "skills": [],
+    "domain": [],
+    "availability": "",
+    "bio": "",
+    "department": "",
+    "designation": "",
+    "institution": "",
+    "preferences": {
+      "domains": [],
+      "projectTypes": [],
+      "collaboratorRoles": []
+    },
+    "createdAt": "2026-04-17T05:07:14.374Z",
+    "name": "Test Faculty",
+    "email": "testfaculty@gmail.com",
+    "password": "$2b$10$MQ2XDySSyvEpBgDnCzBN0Oth79YImxCuk5welH6rBUUjjt.Z2n5p2"
+  }
+]

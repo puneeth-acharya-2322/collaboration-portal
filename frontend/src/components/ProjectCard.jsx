@@ -1,3 +1,7 @@
+import { useContext } from 'react'
+import { useNavigate } from 'react-router-dom'
+import AuthContext from '../context/AuthContext'
+
 // Avatar background colors keyed by domain
 const DOMAIN_COLORS = {
   'Medical Imaging': '#1A7A6E',
@@ -35,9 +39,20 @@ export default function ProjectCard({ project, index }) {
   const isFeatured = index === 0
   const visibleSkills = skills.slice(0, 3)
   const extraSkills = skills.length > 3 ? skills.length - 3 : 0
+  const { user } = useContext(AuthContext)
+  const navigate = useNavigate()
+
+  const handleViewDetails = (e) => {
+    e.stopPropagation()
+    navigate(`/projects/${project.id || project._id}`, { state: { project } })
+  }
+
+  const handleCardClick = () => {
+    navigate(`/projects/${project.id || project._id}`, { state: { project } })
+  }
 
   return (
-    <div className={`project-card${isFeatured ? ' featured' : ''}`}>
+    <div className={`project-card${isFeatured ? ' featured' : ''}`} onClick={handleCardClick}>
       {/* Left content */}
       <div>
         {/* Header: avatar + title + PI */}
@@ -70,7 +85,11 @@ export default function ProjectCard({ project, index }) {
           {type === 'paper' && (
             <span className="pc-tag tag-paper">📄 Paper</span>
           )}
-          <span className="pc-tag tag-public">🌐 Public</span>
+          {project.isPublic ? (
+            <span className="pc-tag tag-public">🌐 Public</span>
+          ) : (
+            <span className="pc-tag tag-status-up" style={{ background: '#FDE68A', color: '#B45309' }}>🔒 Private</span>
+          )}
         </div>
 
         {/* Description */}
@@ -89,17 +108,17 @@ export default function ProjectCard({ project, index }) {
 
       {/* Right: match ring + CTA */}
       <div className="pc-right">
-        <div className="match-ring">
-          <div className="match-score-big">—</div>
-          <div className="match-label">Login</div>
+        <div className="match-ring" style={user ? { borderColor: 'var(--teal)' } : {}}>
+          <div className="match-score-big">{user ? (project.matchScore || '75%') : '—'}</div>
+          <div className="match-label">{user ? 'Match' : 'Login'}</div>
         </div>
         <button
           className="view-btn"
-          onClick={() => alert(`Login to view & collaborate on:\n"${title}"`)}
+          onClick={handleViewDetails}
         >
-          View Details
+          {(!user && !project.isPublic) ? 'Login to read' : (user && project.createdBy !== user.id) ? 'View & Apply' : 'View Details'}
         </button>
-        <div className="lock-note">🔒 Login to apply</div>
+        {!user && <div className="lock-note">{project.isPublic ? '🔒 Login to apply' : '🔒 Login to read details'}</div>}
       </div>
     </div>
   )

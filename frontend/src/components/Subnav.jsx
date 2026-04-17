@@ -1,23 +1,30 @@
 import { Link, useLocation } from 'react-router-dom'
 
-export default function Subnav() {
-  const location = useLocation()
-  const isCollaborator = location.pathname === '/collaborators'
+  import AuthContext from '../context/AuthContext'
+  import { useContext } from 'react'
 
-  return (
-    <div className="subnav">
-      <Link
-        to="/"
-        className={`snb ${!isCollaborator ? 'active' : ''}`}
-      >
-        Find a Project
-      </Link>
-      <Link
-        to="/collaborators"
-        className={`snb ${isCollaborator ? 'active' : ''}`}
-      >
-        Find a Collaborator
-      </Link>
-    </div>
-  )
+  export default function Subnav() {
+    const location = useLocation()
+    const { user } = useContext(AuthContext)
+
+    return (
+      <div className="subnav">
+        {user && (
+          <Link to="/dashboard" className={`snb ${location.pathname === '/dashboard' ? 'active' : ''}`}>
+            Dashboard
+          </Link>
+        )}
+        <Link to="/" className={`snb ${location.pathname === '/' ? 'active' : ''}`}>
+          Find a Project
+        </Link>
+        <Link to="/collaborators" className={`snb ${location.pathname === '/collaborators' ? 'active' : ''}`}>
+          Find a Collaborator
+        </Link>
+        {user && (
+          <Link to="/dashboard/preferences" className={`snb ${location.pathname === '/dashboard/preferences' ? 'active' : ''}`}>
+            My Collaboration Preferences
+          </Link>
+        )}
+      </div>
+    )
 }
