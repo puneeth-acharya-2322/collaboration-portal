@@ -85,12 +85,12 @@ export default function ResearcherCard({ researcher }) {
 
       {/* Right: match ring + CTA */}
       <div className="pc-right">
-        <div className="match-ring" style={user ? { borderColor: 'var(--teal)' } : {}}>
-          <div className="match-score-big" style={{ fontSize: '16px' }}>{user ? '78%' : '—'}</div>
+        <div className="match-ring" style={user ? { borderColor: 'var(--gold)' } : {}}>
+          <div className="match-score-big" style={{ fontSize: '16px', color: 'var(--navy)' }}>{user ? '78%' : '—'}</div>
           <div className="match-label" style={{ textTransform: 'lowercase', fontSize: '9px', fontWeight: 500 }}>match</div>
         </div>
         <button
-          className="collab-btn teal"
+          className="collab-btn"
           onClick={handleRequestMeet}
           style={{ width: '110px', marginTop: '6px' }}
         >

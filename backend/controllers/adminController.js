@@ -61,7 +61,7 @@ const getDashboardData = (req, res) => {
         pendingUsers,
         pendingProjects: enrichedProjects.filter(p => p.approvalStatus === 'pending_approval'),
         deletionRequests: enrichedProjects.filter(p => p.pendingDeletion),
-        updateRequests: enrichedProjects.filter(p => p.pendingUpdates !== null),
+        updateRequests: enrichedProjects.filter(p => p.pendingUpdates && typeof p.pendingUpdates === 'object'),
         allProjects: enrichedProjects.filter(p => p.approvalStatus === 'approved'),
         allFaculty: enrichedFaculty,
         allRequests: enrichedRequests

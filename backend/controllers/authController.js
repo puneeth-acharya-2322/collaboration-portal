@@ -6,10 +6,10 @@ const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret_key_123';
 
 const register = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, ...otherDetails } = req.body;
 
     if (!name || !email || !password) {
-      return res.status(400).json({ success: false, message: 'Please provide all details' });
+      return res.status(400).json({ success: false, message: 'Please provide all core details' });
     }
 
     const existingUser = User.findByEmail(email);
@@ -24,6 +24,7 @@ const register = async (req, res) => {
       name,
       email,
       password: hashedPassword,
+      ...otherDetails
     });
 
     res.status(201).json({

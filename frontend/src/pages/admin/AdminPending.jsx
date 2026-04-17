@@ -1,8 +1,13 @@
+import { useState } from 'react';
 import { useOutletContext, Link } from 'react-router-dom';
 import { UserCheck, FilePlus, RefreshCw, Trash2 } from 'lucide-react';
+import ComparisonModal from '../../components/admin/ComparisonModal';
+import FacultyReviewModal from '../../components/admin/FacultyReviewModal';
 
 export default function AdminPending() {
   const { data, handleAction } = useOutletContext();
+  const [selectedEdit, setSelectedEdit] = useState(null);
+  const [selectedUser, setSelectedUser] = useState(null);
   const { pendingUsers = [], pendingProjects = [], deletionRequests = [], updateRequests = [] } = data;
 
   const totalPending = (pendingUsers?.length || 0) + (pendingProjects?.length || 0) + (deletionRequests?.length || 0) + (updateRequests?.length || 0);
@@ -47,8 +52,8 @@ export default function AdminPending() {
                         <td>{u.department || 'General Medicine'}</td>
                         <td style={{ textAlign: 'right' }}>
                           <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                            <button onClick={() => handleAction('users', u.id, 'approve')} className="admin-action-btn approve">Verify Faculty</button>
-                            <button onClick={() => handleAction('users', u.id, 'reject')} className="admin-action-btn reject">Reject</button>
+                            <button onClick={() => setSelectedUser(u)} className="admin-action-btn approve">Review Profile</button>
+                            <button onClick={() => handleAction('users', u.id, 'approve')} className="admin-action-btn">Quick Verify</button>
                           </div>
                         </td>
                       </tr>
@@ -82,8 +87,8 @@ export default function AdminPending() {
                         <td>{p.piName}</td>
                         <td style={{ textAlign: 'right' }}>
                           <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                            <Link to={`/projects/${p.id}`} className="admin-action-btn">Preview</Link>
                             <button onClick={() => handleAction('projects', p.id, 'approve')} className="admin-action-btn approve">Approve Publish</button>
+                            <button onClick={() => handleAction('projects', p.id, 'reject')} className="admin-action-btn">Reject</button>
                           </div>
                         </td>
                       </tr>
@@ -117,8 +122,8 @@ export default function AdminPending() {
                         <td>{p.piName}</td>
                         <td style={{ textAlign: 'right' }}>
                           <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                            <button onClick={() => handleAction('edits', p.id, 'approve')} className="admin-action-btn approve">Approve Changes</button>
-                            <button onClick={() => handleAction('edits', p.id, 'reject')} className="admin-action-btn">Reject Edits</button>
+                            <button onClick={() => setSelectedEdit(p)} className="admin-action-btn approve">Review Changes</button>
+                            <button onClick={() => handleAction('edits', p.id, 'approve')} className="admin-action-btn">Quick Approve</button>
                           </div>
                         </td>
                       </tr>
@@ -165,6 +170,28 @@ export default function AdminPending() {
           )}
 
         </div>
+      )}
+
+      {selectedEdit && (
+        <ComparisonModal 
+          project={selectedEdit} 
+          onClose={() => setSelectedEdit(null)}
+          onAction={(action) => {
+            handleAction('edits', selectedEdit.id, action);
+            setSelectedEdit(null);
+          }}
+        />
+      )}
+
+      {selectedUser && (
+        <FacultyReviewModal
+          user={selectedUser}
+          onClose={() => setSelectedUser(null)}
+          onAction={(action) => {
+            handleAction('users', selectedUser.id, action);
+            setSelectedUser(null);
+          }}
+        />
       )}
     </div>
   );

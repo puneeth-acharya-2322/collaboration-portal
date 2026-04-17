@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { Lock, ArrowRight } from 'lucide-react'
 
 export default function LockOverlay() {
@@ -24,19 +25,21 @@ export default function LockOverlay() {
           You are viewing public projects only. Create a free account to unlock all projects,
           see your personalised match score, and apply to collaborate.
         </div>
-        <button
+        <Link
+          to="/register"
           className="lock-cta-btn"
-          onClick={() => alert('Login / Registration — coming in Step 2')}
+          style={{ textDecoration: 'none' }}
         >
           Create free account <ArrowRight size={15} />
-        </button>
-        <div
+        </Link>
+        <Link
+          to="/login"
           className="lock-small"
-          onClick={() => alert('Login — coming in Step 2')}
+          style={{ textDecoration: 'none' }}
         >
           <Lock size={11} />
           Already registered? Sign in
-        </div>
+        </Link>
       </div>
     </div>
   )

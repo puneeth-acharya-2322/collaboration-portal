@@ -148,16 +148,16 @@ export default function Profile() {
           <div style={{ background: '#fff', border: '.5px solid var(--border)', borderTop: 'none', borderRadius: '0 0 12px 12px', padding: '1.25rem', marginBottom: '1.5rem' }}>
             <div style={{ fontSize: '10px', fontWeight: 600, color: 'var(--muted)', marginBottom: '1rem', textTransform: 'uppercase', letterSpacing: '.05em' }}>MANAGE YOUR PROFILE</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '13px' }}>
-              <div onClick={() => setEditMode({...editMode, A: true})} style={{ color: 'var(--navy)', display: 'flex', gap: '10px', alignItems: 'center', cursor: 'pointer' }}><Edit2 size={15} color="var(--coral)" /> Edit personal info</div>
-              <div onClick={() => setEditMode({...editMode, B: true, C: true})} style={{ color: 'var(--navy)', display: 'flex', gap: '10px', alignItems: 'center', cursor: 'pointer' }}><Microscope size={15} color="var(--teal)" /> Edit research expertise</div>
-              <div onClick={() => setEditMode({...editMode, C: true})} style={{ color: 'var(--navy)', display: 'flex', gap: '10px', alignItems: 'center', cursor: 'pointer' }}><Calendar size={15} color="#8b5cf6" /> Edit availability calendar</div>
-              <div style={{ color: 'var(--navy)', display: 'flex', gap: '10px', alignItems: 'center', cursor: 'pointer' }}><Search size={15} color="#3b82f6" /> View FYRC card preview</div>
-              <div style={{ color: 'var(--navy)', display: 'flex', gap: '10px', alignItems: 'center', cursor: 'pointer' }}><BarChart2 size={15} color="#10b981" /> View profile stats</div>
+              <div onClick={() => setEditMode({...editMode, A: true})} style={{ color: 'var(--navy)', display: 'flex', gap: '10px', alignItems: 'center', cursor: 'pointer' }}><Edit2 size={15} color="var(--gold)" /> Edit personal info</div>
+              <div onClick={() => setEditMode({...editMode, B: true, C: true})} style={{ color: 'var(--navy)', display: 'flex', gap: '10px', alignItems: 'center', cursor: 'pointer' }}><Microscope size={15} color="var(--navy)" /> Edit research expertise</div>
+              <div onClick={() => setEditMode({...editMode, C: true})} style={{ color: 'var(--navy)', display: 'flex', gap: '10px', alignItems: 'center', cursor: 'pointer' }}><Calendar size={15} color="var(--gold)" /> Edit availability calendar</div>
+              <div style={{ color: 'var(--navy)', display: 'flex', gap: '10px', alignItems: 'center', cursor: 'pointer' }}><Search size={15} color="var(--navy)" /> View FYRC card preview</div>
+              <div style={{ color: 'var(--navy)', display: 'flex', gap: '10px', alignItems: 'center', cursor: 'pointer' }}><BarChart2 size={15} color="var(--gold)" /> View profile stats</div>
               
               <hr style={{ border: 'none', borderTop: '.5px solid var(--border)', margin: '4px 0' }}/>
               
               <div onClick={() => setEditMode({...editMode, E: true})} style={{ color: 'var(--navy)', display: 'flex', gap: '10px', alignItems: 'center', cursor: 'pointer' }}><Settings size={15} color="var(--muted)" /> Account settings</div>
-              <div style={{ color: 'var(--navy)', display: 'flex', gap: '10px', alignItems: 'center', cursor: 'pointer' }}><Lock size={15} color="var(--amber)" /> Privacy options</div>
+              <div style={{ color: 'var(--navy)', display: 'flex', gap: '10px', alignItems: 'center', cursor: 'pointer' }}><Lock size={15} color="var(--navy)" /> Privacy options</div>
               <div onClick={handleLogout} style={{ color: 'var(--red)', fontWeight: 500, display: 'flex', gap: '10px', alignItems: 'center', marginTop: '4px', cursor: 'pointer' }}><LogOut size={15} color="var(--red)" /> Logout</div>
             </div>
           </div>
@@ -194,7 +194,7 @@ export default function Profile() {
           <div style={{ background: '#fff', border: '.5px solid var(--border)', borderRadius: '12px', padding: '1.5rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
               <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--navy)', textTransform: 'uppercase', letterSpacing: '.05em' }}>A · PERSONAL INFORMATION</div>
-              <div onClick={() => toggleEdit('A')} style={{ fontSize: '11px', color: editMode.A ? 'var(--green)' : 'var(--teal)', cursor: 'pointer', fontWeight: 500 }}>
+              <div onClick={() => toggleEdit('A')} style={{ fontSize: '11px', color: editMode.A ? 'var(--green)' : 'var(--navy)', cursor: 'pointer', fontWeight: 600 }}>
                 {editMode.A ? 'Save' : 'Edit'}
               </div>
             </div>

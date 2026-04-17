@@ -17,21 +17,20 @@ export default function Topbar() {
 
   return (
     <div className="topbar">
-      {/* Logo */}
-      <div className="logo-box">K</div>
-
-      {/* Brand */}
-      <div>
-        <div className="brand">KMC · Department of AI in Healthcare</div>
-        <div className="brand-sub">FYRC — Find Your Research Collaborator Portal</div>
-      </div>
+      <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '15px', textDecoration: 'none' }}>
+        <div className="logo-box">K</div>
+        <div>
+          <div className="brand" style={{ color: '#fff' }}>KMC · Department of AI in Healthcare</div>
+          <div className="brand-sub" style={{ color: 'rgba(255,255,255,0.7)' }}>FYRC — Find Your Research Collaborator Portal</div>
+        </div>
+      </Link>
 
       {user ? (
         <div style={{ display: 'flex', gap: isAdminView ? '1rem' : '1.5rem', alignItems: 'center', marginLeft: 'auto' }}>
            {user.role === 'admin' ? (
              <>
                <Link to="/admin" style={{ background: isAdminView ? 'rgba(255,255,255,0.1)' : 'transparent', color: '#fff', border: isAdminView ? '1px solid rgba(255,255,255,0.2)' : 'none', padding: '6px 14px', borderRadius: '6px', fontSize: '13px', fontWeight: 500, textDecoration: 'none' }}>Admin Dashboard</Link>
-               <Link to="/dashboard" style={{ color: 'rgba(255,255,255,0.7)', fontSize: '13px', textDecoration: 'none', marginRight: '5px' }}>Portal</Link>
+               <Link to="/dashboard" style={{ color: 'rgba(255,255,255,0.7)', fontSize: '12px', textDecoration: 'none', marginRight: '5px', padding: '4px 10px', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.1)' }}>Researcher View</Link>
              </>
            ) : (
              <>

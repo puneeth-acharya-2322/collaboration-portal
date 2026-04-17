@@ -44,8 +44,39 @@ export default function ProjectDetail() {
   const isPrivate = project.isPublic === false;
   const showLock = isPrivate && !user;
 
+  const isAdminReview = user?.role === 'admin' && project.approvalStatus === 'pending_approval';
+
+  const handleReviewAction = async (action) => {
+    if (!window.confirm(`Are you sure you want to ${action} this project?`)) return;
+    try {
+      const res = await fetch(`http://localhost:3001/api/admin/projects/${project.id}/${action}`, {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        alert(`Project ${action === 'approve' ? 'published' : 'rejected'} successfully.`);
+        navigate('/admin/pending');
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   return (
     <div className="pw">
+      {isAdminReview && (
+        <div className="admin-review-bar">
+          <div className="arb-info">
+            <span className="arb-badge">Pending Verification</span>
+            <span>You are reviewing this submission. Verify all details before publishing.</span>
+          </div>
+          <div className="arb-btns">
+            <button className="arb-btn approve" onClick={() => handleReviewAction('approve')}>Approve & Publish</button>
+            <button className="arb-btn reject" onClick={() => handleReviewAction('reject')}>Reject Submission</button>
+          </div>
+        </div>
+      )}
+
       <button className="back-btn" onClick={() => navigate(-1)}>← Back to results</button>
       
       {showLock ? (

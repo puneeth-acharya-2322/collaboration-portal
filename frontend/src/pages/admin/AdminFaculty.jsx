@@ -1,11 +1,13 @@
-import { useOutletContext } from 'react-router-dom';
-import { UserPlus } from 'lucide-react';
 import { useState } from 'react';
+import { useOutletContext } from 'react-router-dom';
+import { UserPlus, UserCheck } from 'lucide-react';
+import FacultyReviewModal from '../../components/admin/FacultyReviewModal';
 
 export default function AdminFaculty() {
-  const { data } = useOutletContext();
-  const { allFaculty } = data;
+  const { data, handleAction } = useOutletContext();
+  const { allFaculty = [] } = data;
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
 
   function getInitials(name) {
     if (!name) return '??';
@@ -19,7 +21,7 @@ export default function AdminFaculty() {
           <h1 className="page-title" style={{ fontSize: '24px', marginBottom: '8px' }}>Faculty Accounts</h1>
           <p className="page-desc">Manage verified researchers and institutional access.</p>
         </div>
-        <button onClick={() => setShowCreateModal(true)} className="btn btn-navy" style={{ background: 'var(--navy)', color: '#fff', border: 'none', fontSize: '12px' }}>
+        <button onClick={() => setShowCreateModal(true)} className="btn btn-navy" style={{ background: 'var(--navy)', color: '#fff', border: 'none', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 16px', borderRadius: '8px', cursor: 'pointer' }}>
           <UserPlus size={14} />
           Create Faculty Account
         </button>
@@ -40,11 +42,13 @@ export default function AdminFaculty() {
             {allFaculty.map((f) => (
               <tr key={f.id}>
                 <td>
-                  <div className="fac-av-box">
-                    <div className="fac-av">{getInitials(f.name)}</div>
+                  <div className="fac-av-box" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div className="fac-av" style={{ width: '32px', height: '32px', borderRadius: '16px', background: 'var(--gold)', color: 'var(--navy)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 'bold' }}>
+                      {getInitials(f.name)}
+                    </div>
                     <div>
-                      <div className="fac-info-name">{f.name}</div>
-                      <div className="fac-info-email">{f.email}</div>
+                      <div style={{ fontWeight: 600, color: 'var(--navy)' }}>{f.name}</div>
+                      <div style={{ fontSize: '11px', color: 'var(--muted)' }}>{f.email}</div>
                     </div>
                   </div>
                 </td>
@@ -54,9 +58,9 @@ export default function AdminFaculty() {
                     {f.status === 'approved' ? 'Active' : 'Pending'}
                   </span>
                 </td>
-                <td>{f.projectsCount}</td>
+                <td>{f.projectsCount || 0}</td>
                 <td style={{ textAlign: 'right' }}>
-                  <button className="admin-action-btn">View Details</button>
+                  <button className="admin-action-btn" onClick={() => setSelectedUser(f)}>View Details</button>
                 </td>
               </tr>
             ))}
@@ -65,35 +69,37 @@ export default function AdminFaculty() {
       </div>
 
       {showCreateModal && (
-        <div className="modal-overlay" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
-          <div className="modal" style={{ maxWidth: '450px' }}>
+        <div className="modal-bg" style={{ position: 'fixed', inset: 0, zIndex: 1100, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }}>
+          <div className="modal" style={{ maxWidth: '450px', width: '90%' }}>
             <div className="modal-head">
               <h3 style={{ color: '#fff' }}>Create Faculty Account</h3>
-              <button onClick={() => setShowCreateModal(false)} className="modal-close">×</button>
+              <button onClick={() => setShowCreateModal(false)} className="modal-close" style={{ background: 'none', border: 'none', color: '#fff', fontSize: '24px', cursor: 'pointer' }}>×</button>
             </div>
-            <div className="modal-body">
-              <div className="fi">
-                <label>Full Name</label>
-                <input type="text" placeholder="Dr. Name" />
+            <div className="modal-body" style={{ padding: '1.5rem' }}>
+              <div className="fi" style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, marginBottom: '4px' }}>Full Name</label>
+                <input type="text" placeholder="Dr. Name" style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #ddd' }} />
               </div>
-              <div className="fi">
-                <label>Institutional Email</label>
-                <input type="email" placeholder="name@manipal.edu" />
+              <div className="fi" style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, marginBottom: '4px' }}>Institutional Email</label>
+                <input type="email" placeholder="name@manipal.edu" style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #ddd' }} />
               </div>
-              <div className="fi">
-                <label>Department</label>
-                <select>
-                  <option>AI in Healthcare</option>
-                  <option>Cardiology</option>
-                  <option>Neurology</option>
-                  <option>Pediatrics</option>
-                </select>
-              </div>
-              <p className="form-note" style={{ marginBottom: '1.5rem' }}>An invitation email will be sent to the faculty member to set their password.</p>
-              <button className="submit-btn" onClick={() => setShowCreateModal(false)}>Send Invitation</button>
+              <p className="form-note" style={{ fontSize: '11px', color: '#64748b', marginBottom: '1.5rem' }}>An invitation email will be sent to the faculty member to set their password.</p>
+              <button className="submit-btn" style={{ width: '100%', padding: '10px', background: 'var(--navy)', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer' }} onClick={() => setShowCreateModal(false)}>Send Invitation</button>
             </div>
           </div>
         </div>
+      )}
+
+      {selectedUser && (
+        <FacultyReviewModal
+          user={selectedUser}
+          onClose={() => setSelectedUser(null)}
+          onAction={(action) => {
+            handleAction('users', selectedUser.id, action);
+            setSelectedUser(null);
+          }}
+        />
       )}
     </div>
   );

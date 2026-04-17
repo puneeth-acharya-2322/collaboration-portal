@@ -8,7 +8,7 @@ export default function AdminSubnav({ pendingCount = 0 }) {
   // or just render all sections on one page as shown in the mockup scroll.
   
   const navItems = [
-    { label: 'Dashboard', path: '/admin', id: 'dash', end: true },
+    { label: 'Overview', path: '/admin', id: 'dash', end: true },
     { label: 'Pending', path: '/admin/pending', id: 'pending', badge: pendingCount || 0 },
     { label: 'All Projects', path: '/admin/projects', id: 'all' },
     { label: 'Faculty Accounts', path: '/admin/faculty', id: 'faculty' },

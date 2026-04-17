@@ -42,6 +42,15 @@ class User {
       id: uuidv4(),
       role: 'user',
       status: 'pending', // all new users are pending
+      title: '',
+      phone: '',
+      experience: '',
+      scopusId: '',
+      orcid: '',
+      hIndex: 0,
+      publications: 0,
+      collabMode: 'Hybrid',
+      expertise: [], // bullets for FYRC card
       skills: [],
       domain: [],
       availability: '',
@@ -49,6 +58,12 @@ class User {
       department: '',
       designation: '',
       institution: '',
+      settings: {
+        profileVisibility: 'All FYRC researchers',
+        newCollabAlerts: true,
+        newMatchNotifications: true,
+        weeklyDigest: false
+      },
       preferences: {
         domains: [],
         projectTypes: [],

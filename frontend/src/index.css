@@ -751,7 +751,106 @@ body{
 .admin-table tr:hover { background: #fafbfc; }
 
 .at-project-main { font-weight: 600; color: var(--navy); margin-bottom: 2px; }
-.at-project-sub { font-size: 11px; color: var(--muted); }
+/* ── ADMIN REVIEW BAR ── */
+.admin-review-bar {
+  position: sticky;
+  top: 58px;
+  left: 0;
+  right: 0;
+  z-index: 180;
+  background: var(--navy);
+  color: #fff;
+  padding: 0.85rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 2px solid var(--gold);
+  margin-top: -1.35rem; /* pull up into the space if possible or match PW padding */
+  margin-bottom: 1.5rem;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  border-radius: 0 0 12px 12px;
+}
+.arb-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 500;
+}
+.arb-badge {
+  background: var(--gold);
+  color: var(--navy);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.arb-btns {
+  display: flex;
+  gap: 12px;
+}
+.arb-btn {
+  padding: 0.5rem 1.25rem;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  font-family: 'DM Sans', sans-serif;
+  transition: all 0.2s;
+}
+.arb-btn.approve {
+  background: var(--gold);
+  color: #412402;
+}
+.arb-btn.approve:hover {
+  background: #b8902a;
+  transform: translateY(-1px);
+}
+.arb-btn.reject {
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.2);
+}
+.arb-btn.reject:hover {
+  background: var(--red);
+  border-color: var(--red);
+}
+
+/* ── COMPARISON MODAL ── */
+.diff-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+.diff-card {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem;
+  background: #f9fafb;
+}
+.diff-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+.diff-val {
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.6;
+}
+.diff-changed {
+  background: #E8F5EA;
+  color: #166534;
+  padding: 2px 4px;
+  border-radius: 4px;
+  border-bottom: 1px solid #16A34A;
+}
 
 .badge-status {
   display: inline-flex;
