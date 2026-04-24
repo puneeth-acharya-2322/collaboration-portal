@@ -1,0 +1,7 @@
+{
+  "departmentEmail": "aihealthcarekmc@manipal.edu",
+  "adminEmail": "admin@manipal.edu",
+  "adminPasswordHash": "$2a$12$Wnm71OnTaY1U797BhcRJAOJu26fAcItx1lkaEWzYOma/9GfYl19Eu",
+  "jwtSecret": "ai-healthcare-kmc-2025-secret-key-change-in-production",
+  "standardPerks": ["Co-authorship", "Letter of Recommendation", "Clinical data access"]
+}
