@@ -9,10 +9,12 @@ import {
   Layout, 
   Calendar 
 } from 'lucide-react'
+import { useUser } from '../context/UserContext.jsx'
 import logo from '../assets/logo.jpeg'
 
 export default function DashboardLayout({ children, searchValue, onSearchChange }) {
   const location = useLocation()
+  const { role } = useUser()
   
   return (
     <div className="dash-container">
@@ -53,19 +55,27 @@ export default function DashboardLayout({ children, searchValue, onSearchChange 
           </div>
 
           <div className="dash-actions">
-            <div className="dash-avatar-stack">
-               <div className="dash-avatar dash-avatar-blue">TE</div>
-               <div className="dash-avatar dash-avatar-red">SR</div>
-               <div className="dash-avatar dash-avatar-purple">RL</div>
-               <div className="dash-avatar dash-avatar-gray">+3</div>
-            </div>
-            
-            <Bell size={20} className="dash-action-btn" />
-            <MessageSquare size={20} className="dash-action-btn" />
-            
-            <button className="dash-filter-btn">
-              <Clock size={16} /> Activity Log
-            </button>
+            {role === 'public' ? (
+              <Link to="/login" className="pc-premium-btn flex items-center gap-2 border-slate-200 text-slate-500 hover:border-[var(--dash-green)] hover:text-[var(--dash-green)]">
+                Login / Register
+              </Link>
+            ) : (
+              <>
+                <div className="dash-avatar-stack">
+                   <div className="dash-avatar dash-avatar-blue">TE</div>
+                   <div className="dash-avatar dash-avatar-red">SR</div>
+                   <div className="dash-avatar dash-avatar-purple">RL</div>
+                   <div className="dash-avatar dash-avatar-gray">+3</div>
+                </div>
+                
+                <Bell size={20} className="dash-action-btn" />
+                <MessageSquare size={20} className="dash-action-btn" />
+                
+                <button className="dash-filter-btn">
+                  <Clock size={16} /> Activity Log
+                </button>
+              </>
+            )}
           </div>
         </header>
 

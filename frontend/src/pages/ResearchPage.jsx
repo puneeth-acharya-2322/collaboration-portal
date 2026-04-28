@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { getProjects } from '../api'
-import { Search, Filter, Clock, Briefcase, MinusCircle, ChevronDown } from 'lucide-react'
+import { Search, Filter, Clock, Briefcase, ChevronRight, CheckCircle2 } from 'lucide-react'
 import { useUser } from '../context/UserContext'
 import DashboardLayout from '../components/DashboardLayout'
 import ProjectDetailModal from '../components/ProjectDetailModal'
@@ -14,10 +14,13 @@ export default function ResearchPage({ forceView }) {
   // Filtering State
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('All')
-  const [domainFilter, setDomainFilter] = useState('All')
+  const [domainFilter, setDomainFilter] = useState([])
   const [typeFilter, setTypeFilter] = useState('All')
-  const [timeFilter, setTimeFilter] = useState('All')
-  const [skillFilter, setSkillFilter] = useState([])
+  const [timeFilter, setTimeFilter] = useState('Any')
+  const [perksFilter, setPerksFilter] = useState([])
+  const [remoteFilter, setRemoteFilter] = useState(false)
+  const [irbFilter, setIrbFilter] = useState(false)
+  const [dateFilter, setDateFilter] = useState('Any')
 
   const [selectedProject, setSelectedProject] = useState(null)
 
@@ -44,18 +47,42 @@ export default function ResearchPage({ forceView }) {
                           proj.shortDescription?.toLowerCase().includes(searchTerm.toLowerCase())
     
     const matchesStatus = statusFilter === 'All' || proj.status === statusFilter
-    const matchesDomain = domainFilter === 'All' || proj.domain === domainFilter
-    const matchesType = typeFilter === 'All' || proj.type === typeFilter
+    const matchesDomain = domainFilter.length === 0 || domainFilter.includes(proj.domain)
+    const matchesType = typeFilter === 'All' || (typeFilter === 'Project' ? proj.type === 'Project' : proj.type === 'Paper')
     
     let matchesTime = true
-    if (timeFilter === '< 5h') matchesTime = proj.hoursPerWeek < 5
-    else if (timeFilter === '5-10h') matchesTime = proj.hoursPerWeek >= 5 && proj.hoursPerWeek <= 10
-    else if (timeFilter === '10h+') matchesTime = proj.hoursPerWeek > 10
+    if (timeFilter === 'Up to 6 hrs/week') matchesTime = proj.hoursPerWeek <= 6
+    else if (timeFilter === '6-10 hrs/week') matchesTime = proj.hoursPerWeek > 6 && proj.hoursPerWeek <= 10
+    else if (timeFilter === '10+ hrs/week') matchesTime = proj.hoursPerWeek > 10
 
-    const matchesSkills = skillFilter.length === 0 || skillFilter.every(s => proj.skills?.includes(s))
+    const matchesPerks = perksFilter.length === 0 || perksFilter.every(p => proj.perks?.some(pp => pp.includes(p)))
+    const matchesRemote = !remoteFilter || proj.remoteOk === true
+    
+    let matchesDate = true
+    if (dateFilter === 'Last 7 days') {
+       const weekAgo = new Date()
+       weekAgo.setDate(weekAgo.getDate() - 7)
+       matchesDate = new Date(proj.createdAt) > weekAgo
+    } else if (dateFilter === 'Last 30 days') {
+       const monthAgo = new Date()
+       monthAgo.setDate(monthAgo.getDate() - 30)
+       matchesDate = new Date(proj.createdAt) > monthAgo
+    }
 
-    return matchesSearch && matchesStatus && matchesDomain && matchesTime && matchesType && matchesSkills
+    return matchesSearch && matchesStatus && matchesDomain && matchesTime && matchesType && matchesPerks && matchesRemote && matchesDate
   })
+
+  const resetFilters = () => {
+    setStatusFilter('All')
+    setDomainFilter([])
+    setTypeFilter('All')
+    setTimeFilter('Any')
+    setPerksFilter([])
+    setRemoteFilter(false)
+    setIrbFilter(false)
+    setDateFilter('Any')
+    setSearchTerm('')
+  }
 
   const isGuest = role === 'public'
 
@@ -72,63 +99,178 @@ export default function ResearchPage({ forceView }) {
             {view === 'proj' ? `${filteredProjects.length} Projects` : '142 Researchers'}
           </div>
         </div>
-        <div className="flex gap-3">
-          <button className="dash-filter-btn" onClick={() => { setSearchTerm(''); setStatusFilter('All'); setDomainFilter('All'); setTimeFilter('All'); setTypeFilter('All'); setSkillFilter([]); }}>
-            <Filter size={16} /> Reset Filters
+        <div>
+          <button className="pc-premium-btn flex items-center gap-2 border-slate-200 text-slate-500 hover:border-[var(--dash-green)]" onClick={resetFilters}>
+            <Filter size={14} /> Reset Filters
           </button>
         </div>
       </div>
 
-      {view === 'proj' ? (
-        <>
-          {/* FILTERS BAR */}
-          <div className="dash-filters-row">
-            <FilterSelect 
-              label="Project Status" 
-              value={statusFilter} 
-              onChange={setStatusFilter} 
-              options={['Ongoing', 'Upcoming', 'Closing Soon']} 
-            />
-            <FilterSelect 
-              label="Domain" 
-              value={domainFilter} 
-              onChange={setDomainFilter} 
-              options={['NLP in Healthcare', 'Medical Imaging', 'Predictive Analytics', 'Clinical Decision AI', 'Drug Discovery AI']} 
-            />
-            <FilterSelect 
-              label="Type" 
-              value={typeFilter} 
-              onChange={setTypeFilter} 
-              options={['Project', 'Paper']} 
-            />
-            <FilterSelect 
-              label="Time" 
-              value={timeFilter} 
-              onChange={setTimeFilter} 
-              options={['< 5h', '5-10h', '10h+']} 
-            />
+      <div className="discovery-layout">
+        {/* SIDEBAR FILTERS */}
+        <aside className="filter-sidebar">
+          <div className="filter-section">
+            <span className="filter-title">Status</span>
+            <div className="filter-options">
+              {['All', 'Ongoing', 'Upcoming', 'Closing Soon'].map(opt => (
+                <label key={opt} className="filter-option">
+                  <input 
+                    type="radio" 
+                    name="status" 
+                    checked={statusFilter === opt}
+                    onChange={() => setStatusFilter(opt)}
+                  />
+                  <span className="filter-label">{opt === 'All' ? 'Open to All' : opt}</span>
+                </label>
+              ))}
+            </div>
           </div>
 
+          <div className="filter-divider" />
+
+          <div className="filter-section">
+            <span className="filter-title">Domain</span>
+            <div className="filter-options">
+              {['Medical Imaging', 'NLP in Healthcare', 'Predictive Analytics', 'Federated Learning', 'Genomics'].map(opt => (
+                <label key={opt} className="filter-option">
+                  <input 
+                    type="checkbox" 
+                    checked={domainFilter.includes(opt)}
+                    onChange={(e) => {
+                      if (e.target.checked) setDomainFilter([...domainFilter, opt])
+                      else setDomainFilter(domainFilter.filter(d => d !== opt))
+                    }}
+                  />
+                  <span className="filter-label">{opt}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div className="filter-divider" />
+
+          <div className="filter-section">
+            <span className="filter-title">Type</span>
+            <div className="filter-options">
+              {['All', 'Project', 'Paper'].map(opt => (
+                <label key={opt} className="filter-option">
+                  <input 
+                    type="radio" 
+                    name="type" 
+                    checked={typeFilter === opt}
+                    onChange={() => setTypeFilter(opt)}
+                  />
+                  <span className="filter-label">
+                    {opt === 'All' ? 'All types' : opt === 'Project' ? 'Research Project' : 'Paper / Publication'}
+                  </span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div className="filter-divider" />
+
+          <div className="filter-section">
+            <span className="filter-title">Collaboration perks</span>
+            <div className="filter-options">
+              {['Co-authorship', 'Letter of Recommendation', 'Clinical data access', 'Stipend / honorarium'].map(opt => (
+                <label key={opt} className="filter-option">
+                  <input 
+                    type="checkbox" 
+                    checked={perksFilter.includes(opt)}
+                    onChange={(e) => {
+                      if (e.target.checked) setPerksFilter([...perksFilter, opt])
+                      else setPerksFilter(perksFilter.filter(p => p !== opt))
+                    }}
+                  />
+                  <span className="filter-label">{opt}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div className="filter-divider" />
+
+          <div className="filter-section">
+            <span className="filter-title">Time commitment</span>
+            <div className="filter-options">
+              {['Any', 'Up to 6 hrs/week', '6-10 hrs/week', '10+ hrs/week'].map(opt => (
+                <label key={opt} className="filter-option">
+                  <input 
+                    type="radio" 
+                    name="time" 
+                    checked={timeFilter === opt}
+                    onChange={() => setTimeFilter(opt)}
+                  />
+                  <span className="filter-label">{opt}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          <div className="filter-divider" />
+
+          <div className="filter-section">
+            <span className="filter-title">IRB Approved</span>
+            <label className="filter-option">
+              <input 
+                type="checkbox" 
+                checked={irbFilter}
+                onChange={(e) => setIrbFilter(e.target.checked)}
+              />
+              <span className="filter-label">Yes — ethics approved only</span>
+            </label>
+          </div>
+
+          <div className="filter-section">
+            <span className="filter-title">Remote friendly</span>
+            <label className="filter-option">
+              <input 
+                type="checkbox" 
+                checked={remoteFilter}
+                onChange={(e) => setRemoteFilter(e.target.checked)}
+              />
+              <span className="filter-label">Remote collaboration possible</span>
+            </label>
+          </div>
+
+          <div className="filter-divider" />
+
+          <div className="filter-section">
+            <span className="filter-title">Posted within</span>
+            <div className="filter-options">
+              {['Any time', 'Last 7 days', 'Last 30 days'].map(opt => (
+                <label key={opt} className="filter-option">
+                  <input 
+                    type="radio" 
+                    name="posted" 
+                    checked={dateFilter === opt}
+                    onChange={() => setDateFilter(opt)}
+                  />
+                  <span className="filter-label">{opt}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        </aside>
+
+        {/* MAIN CONTENT */}
+        <div className="discovery-content bg-white/40 rounded-[32px] p-2">
           <div className="proj-grid">
             {filteredProjects.map(project => (
               <PremiumProjectCard key={project.id} project={project} onOpen={() => setSelectedProject(project)} />
             ))}
             {filteredProjects.length === 0 && (
-              <div className="col-span-full py-20 text-center text-gray-400 bg-white rounded-2xl border border-dashed border-gray-200">
+              <div className="col-span-full py-20 text-center text-gray-400 bg-white rounded-3xl border border-dashed border-gray-200">
                 <Search className="mx-auto mb-4 opacity-10" size={48} />
                 <h3 className="text-lg font-bold text-gray-600">No matches found</h3>
                 <p className="text-sm">Try broadening your search or clearing all filters.</p>
               </div>
             )}
           </div>
-        </>
-      ) : (
-        <div className="py-20 text-center text-gray-400 bg-white rounded-xl border border-dashed border-gray-200">
-          <Briefcase className="mx-auto mb-4 opacity-20" size={48} />
-          <h3 className="text-lg font-bold text-gray-700">Collaborator Discovery</h3>
-          <p className="text-sm max-w-xs mx-auto">This feature is coming soon to the premium portal. You will be able to browse faculty and researchers by expertise.</p>
         </div>
-      )}
+      </div>
+
       {selectedProject && (
         <ProjectDetailModal project={selectedProject} onClose={() => setSelectedProject(null)} />
       )}
@@ -144,7 +286,7 @@ export default function ResearchPage({ forceView }) {
   }
 
   return (
-    <div className="min-h-screen bg-[var(--bg)]">
+    <div className="min-h-screen bg-[var(--dash-bg)]">
       <div className="pw py-12">
         {content}
       </div>
@@ -155,7 +297,7 @@ export default function ResearchPage({ forceView }) {
 function PremiumProjectCard({ project, onOpen }) {
   const piName = project.pi?.name || project.pi || 'Dr. Principal Investigator';
   const initials = piName.split(' ').map(n => n[0]).join('')
-  const { role } = useUser();
+  
   return (
     <div className="proj-card-premium group hover-lift" onClick={onOpen}>
       <div className="pc-premium-header">
@@ -187,54 +329,6 @@ function PremiumProjectCard({ project, onOpen }) {
           View Detail
         </button>
       </div>
-    </div>
-  )
-}
-
-function FilterSelect({ label, value, onChange, options }) {
-  const [open, setOpen] = useState(false)
-  const isSelected = value !== 'All'
-
-  return (
-    <div className="relative">
-      <button 
-        onClick={() => setOpen(!open)}
-        className={`dash-filter-btn flex items-center gap-2 outline-none transition-all ${isSelected ? 'border-[var(--dash-green)] bg-[var(--dash-green)] text-white' : ''}`}
-      >
-        {isSelected ? value : label}
-        {isSelected ? (
-          <MinusCircle 
-            size={14} 
-            className="text-white/70 hover:text-white" 
-            onClick={(e) => { e.stopPropagation(); onChange('All'); }} 
-          />
-        ) : (
-          <ChevronDown size={14} className="text-gray-400" />
-        )}
-      </button>
-
-      {open && (
-        <>
-          <div className="fixed inset-0 z-[100]" onClick={() => setOpen(false)} />
-          <div className="absolute top-full left-0 mt-2 w-56 bg-white border border-gray-100 rounded-xl shadow-2xl z-[110] py-2 animate-fade-in">
-            <button 
-              className="w-full text-left px-4 py-2 text-xs font-bold text-gray-500 hover:bg-gray-50"
-              onClick={() => { onChange('All'); setOpen(false); }}
-            >
-              All {label}
-            </button>
-            {options.map(opt => (
-              <button 
-                key={opt}
-                className={`w-full text-left px-4 py-2 text-xs font-bold transition-colors ${value === opt ? 'bg-[var(--dash-green)] text-white' : 'text-[var(--dash-text)] hover:bg-gray-50'}`}
-                onClick={() => { onChange(opt); setOpen(false); }}
-              >
-                {opt}
-              </button>
-            ))}
-          </div>
-        </>
-      )}
     </div>
   )
 }

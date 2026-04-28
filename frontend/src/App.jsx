@@ -7,6 +7,7 @@ import CompletedPage from './pages/CompletedPage.jsx'
 import AdminLogin from './pages/AdminLogin.jsx'
 import AdminDashboard from './pages/AdminDashboard.jsx'
 import ProtectedRoute from './components/ProtectedRoute.jsx'
+import AuthPage from './pages/AuthPage.jsx'
 import { useUser } from './context/UserContext.jsx'
 import { Mail, MapPin } from 'lucide-react'
 
@@ -21,39 +22,42 @@ function ScrollToTop() {
 export default function App() {
   const location = useLocation()
   const { role } = useUser()
-  
+
   // Detect if we should use the new guest layout for discovery portal
   const discoveryRoutes = ['/', '/research', '/collaborators', '/preferences']
-  const isGuestDiscovery = discoveryRoutes.includes(location.pathname) && role === 'public'
+  const authRoutes = ['/login', '/admin/login', '/register']
+  const isGuestDiscovery = (discoveryRoutes.includes(location.pathname) && role === 'public') || authRoutes.includes(location.pathname)
 
   return (
     <div className="app-root">
-        <ScrollToTop />
-        {!isGuestDiscovery && <Navbar />}
-        <main>
-          <Routes>
-            <Route path="/" element={<ResearchPage />} />
-            <Route path="/research" element={<ResearchPage />} />
-            <Route path="/collaborators" element={<ResearchPage forceView="seeker" />} />
-            
-            <Route path="/collaborate" element={<CollaboratePage />} />
-            <Route path="/matches" element={<CollaboratePage forceTab="matches" />} />
-            <Route path="/profile" element={<CollaboratePage forceTab="prefs" />} />
-            <Route path="/preferences" element={<CollaboratePage forceTab="prefs" />} />
-            
-            <Route path="/completed" element={<CompletedPage />} />
-            <Route path="/admin/login" element={<AdminLogin />} />
-            <Route
-              path="/admin/*"
-              element={
-                <ProtectedRoute>
-                  <AdminDashboard />
-                </ProtectedRoute>
-              }
-            />
-          </Routes>
-        </main>
-        {!isGuestDiscovery && <Footer />}
+      <ScrollToTop />
+      {!isGuestDiscovery && <Navbar />}
+      <main>
+        <Routes>
+          <Route path="/" element={<ResearchPage />} />
+          <Route path="/research" element={<ResearchPage />} />
+          <Route path="/collaborators" element={<ResearchPage forceView="seeker" />} />
+
+          <Route path="/collaborate" element={<CollaboratePage />} />
+          <Route path="/matches" element={<CollaboratePage forceTab="matches" />} />
+          <Route path="/profile" element={<CollaboratePage forceTab="prefs" />} />
+          <Route path="/preferences" element={<CollaboratePage forceTab="prefs" />} />
+
+          <Route path="/login" element={<AuthPage />} />
+          <Route path="/register" element={<AuthPage />} />
+          <Route path="/completed" element={<CompletedPage />} />
+          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route
+            path="/admin/*"
+            element={
+              <ProtectedRoute>
+                <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
+      </main>
+      {!isGuestDiscovery && <Footer />}
     </div>
   )
 }
