@@ -27,7 +27,7 @@ export default function DashboardLayout({ children, searchValue, onSearchChange 
 
         <nav className="dash-menu">
           <div className="dash-menu-label">Discovery Portal</div>
-          <Link to="/research" className={`dash-menu-item ${location.pathname === '/research' ? 'active' : ''}`}>
+          <Link to="/research" className={`dash-menu-item ${(location.pathname === '/research' || location.pathname === '/') ? 'active' : ''}`}>
             <Search size={18} /> Find a Project
           </Link>
           <Link to="/collaborators" className={`dash-menu-item ${location.pathname === '/collaborators' ? 'active' : ''}`}>

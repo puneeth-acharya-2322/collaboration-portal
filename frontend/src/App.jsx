@@ -7,7 +7,6 @@ import CompletedPage from './pages/CompletedPage.jsx'
 import AdminLogin from './pages/AdminLogin.jsx'
 import AdminDashboard from './pages/AdminDashboard.jsx'
 import ProtectedRoute from './components/ProtectedRoute.jsx'
-import HomePage from './pages/HomePage.jsx'
 import { useUser } from './context/UserContext.jsx'
 import { Mail, MapPin } from 'lucide-react'
 
@@ -24,7 +23,7 @@ export default function App() {
   const { role } = useUser()
   
   // Detect if we should use the new guest layout for discovery portal
-  const discoveryRoutes = ['/research', '/collaborators', '/preferences']
+  const discoveryRoutes = ['/', '/research', '/collaborators', '/preferences']
   const isGuestDiscovery = discoveryRoutes.includes(location.pathname) && role === 'public'
 
   return (
@@ -33,7 +32,7 @@ export default function App() {
         {!isGuestDiscovery && <Navbar />}
         <main>
           <Routes>
-            <Route path="/" element={<HomePage />} />
+            <Route path="/" element={<ResearchPage />} />
             <Route path="/research" element={<ResearchPage />} />
             <Route path="/collaborators" element={<ResearchPage forceView="seeker" />} />
             
