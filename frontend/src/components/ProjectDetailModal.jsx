@@ -26,7 +26,7 @@ export default function ProjectDetailModal({ project, onClose }) {
   return (
     <div className="fixed inset-0 z-[150] flex items-center justify-center p-0 sm:p-6 md:p-10 animate-fade-in font-['DM_Sans',sans-serif]">
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-[var(--navy)]/40 backdrop-blur-md" onClick={handleClose} />
+      <div className="absolute inset-0 bg-[#0f172a]/40 backdrop-blur-md" onClick={handleClose} />
 
       {/* Modal Container */}
       <div className={`relative bg-white w-full max-w-5xl h-full sm:h-auto sm:max-h-[90vh] sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row ${closing ? 'scale-95 opacity-0' : 'scale-100 opacity-100'} transition-all duration-300`}>
@@ -39,19 +39,19 @@ export default function ProjectDetailModal({ project, onClose }) {
 
           <div className="mb-8">
             <div className="flex items-center gap-2 mb-4">
-              <span className="px-3 py-1 rounded-full bg-[var(--teal-l)] text-[var(--teal)] text-[10px] font-bold uppercase tracking-widest border border-[var(--teal)]/10">
+              <span className="px-3 py-1 rounded-full bg-[var(--dash-green-soft)] text-[var(--dash-green)] text-[10px] font-bold uppercase tracking-widest border border-[var(--dash-green)]/10">
                 {project.type}
               </span>
-              <span className="px-3 py-1 rounded-full bg-[var(--bg)] text-[var(--navy)] text-[10px] font-bold uppercase tracking-widest border border-[var(--border)]">
+              <span className="px-3 py-1 rounded-full bg-[var(--dash-bg)] text-[var(--dash-text)] text-[10px] font-bold uppercase tracking-widest border border-[var(--dash-border)]">
                 {project.domain}
               </span>
             </div>
-            <h2 className="text-2xl md:text-3xl font-bold font-['Merriweather',serif] text-[var(--navy)] leading-tight mb-2">
+            <h2 className="text-2xl md:text-3xl font-bold font-['Merriweather',serif] text-[var(--dash-text)] leading-tight mb-2">
               {project.title}
             </h2>
-            <div className="flex items-center gap-2.5 text-[14px] font-medium text-[var(--muted)]">
-              <User size={16} className="text-[var(--gold)]" />
-              <span>Lead Investigator: <span className="text-[var(--navy)] font-bold">{project.pi.name}</span></span>
+            <div className="flex items-center gap-2.5 text-[14px] font-medium text-[var(--dash-muted)]">
+              <User size={16} className="text-[var(--dash-green)]" />
+              <span>Lead Investigator: <span className="text-[var(--dash-text)] font-bold">{project.pi?.name || project.pi || 'Not Assigned'}</span></span>
             </div>
           </div>
 
@@ -59,10 +59,10 @@ export default function ProjectDetailModal({ project, onClose }) {
             {/* Clinical Problem */}
             <section>
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-xl bg-[var(--red-l)] flex items-center justify-center text-[var(--red)]">
+                <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center text-red-600">
                   <Stethoscope size={20} />
                 </div>
-                <h3 className="text-lg font-bold font-['Merriweather',serif] text-[var(--navy)]">The Clinical Problem</h3>
+                <h3 className="text-lg font-bold font-['Merriweather',serif] text-[var(--dash-text)]">The Clinical Problem</h3>
               </div>
               <div className="bg-[var(--bg)] rounded-2xl p-6 border border-[var(--border)] italic text-[var(--text)] leading-relaxed font-medium">
                 "{project.clinicalProblem}"
@@ -72,16 +72,19 @@ export default function ProjectDetailModal({ project, onClose }) {
             {/* Tech Stack */}
             <section>
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-xl bg-[var(--teal-l)] flex items-center justify-center text-[var(--teal)]">
+                <div className="w-10 h-10 rounded-xl bg-[var(--dash-green-soft)] flex items-center justify-center text-[var(--dash-green)]">
                   <Code size={20} />
                 </div>
-                <h3 className="text-lg font-bold font-['Merriweather',serif] text-[var(--navy)]">Methodology & Tech Stack</h3>
+                <h3 className="text-lg font-bold font-['Merriweather',serif] text-[var(--dash-text)]">Methodology & Tech Stack</h3>
               </div>
-              <div className="flex flex-wrap gap-2.5 ml-1">
-                {project.techStack.map(tech => (
-                  <span key={tech} className="px-3.5 py-1.5 bg-white border border-[var(--border)] rounded-xl text-[13px] font-bold text-[var(--navy)] shadow-sm">
-                    {tech}
-                  </span>
+              <div className="space-y-3 ml-1">
+                {(project.techStack || []).map(tech => (
+                  <div key={tech} className="flex items-center gap-3">
+                    <div className="w-1.5 h-1.5 rounded-full bg-[var(--dash-green)]" />
+                    <span className="text-[14px] font-bold text-[var(--dash-text)]">
+                      {tech}
+                    </span>
+                  </div>
                 ))}
               </div>
             </section>
@@ -102,16 +105,16 @@ export default function ProjectDetailModal({ project, onClose }) {
             {/* Perks */}
             <section>
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-xl bg-[var(--navy)]/5 flex items-center justify-center text-[var(--navy)]">
+                <div className="w-10 h-10 rounded-xl bg-[var(--dash-bg)] flex items-center justify-center text-[var(--dash-text)]">
                   <Award size={20} />
                 </div>
-                <h3 className="text-lg font-bold font-['Merriweather',serif] text-[var(--navy)]">Recognition & Perks</h3>
+                <h3 className="text-lg font-bold font-['Merriweather',serif] text-[var(--dash-text)]">Recognition & Perks</h3>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {project.perks.map((perk, i) => (
-                  <div key={i} className="flex items-center gap-3 p-3 bg-white border border-[var(--border)] rounded-xl shadow-sm">
-                    <Sparkles size={16} className="text-[var(--gold)] shrink-0" />
-                    <span className="text-[13px] font-bold text-[var(--navy)]">{perk}</span>
+                {(project.perks || []).map((perk, i) => (
+                  <div key={i} className="flex items-center gap-3 p-3 bg-white border border-[var(--dash-border)] rounded-xl shadow-sm">
+                    <Sparkles size={16} className="text-[var(--dash-green)] shrink-0" />
+                    <span className="text-[13px] font-bold text-[var(--dash-text)]">{perk}</span>
                   </div>
                 ))}
               </div>
@@ -173,7 +176,7 @@ export default function ProjectDetailModal({ project, onClose }) {
             {project.status !== 'Closed' ? (
               <button 
                 onClick={() => setShowForm(true)}
-                className="w-full bg-[var(--navy)] text-white py-4 rounded-2xl font-bold text-[15px] hover:bg-[#152e4a] transition-all flex items-center justify-center gap-2 shadow-xl shadow-[var(--navy)]/20"
+                className="w-full bg-[var(--dash-green)] text-white py-4 rounded-2xl font-bold text-[15px] hover:bg-[#16a34a] transition-all flex items-center justify-center gap-2 shadow-xl shadow-[var(--dash-green)]/20"
               >
                 Start Collaboration Brief
                 <ArrowRight size={18} />

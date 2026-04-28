@@ -8,7 +8,7 @@ import AdminLogin from './pages/AdminLogin.jsx'
 import AdminDashboard from './pages/AdminDashboard.jsx'
 import ProtectedRoute from './components/ProtectedRoute.jsx'
 import HomePage from './pages/HomePage.jsx'
-import { UserProvider } from './context/UserContext.jsx'
+import { useUser } from './context/UserContext.jsx'
 import { Mail, MapPin } from 'lucide-react'
 
 function ScrollToTop() {
@@ -20,11 +20,17 @@ function ScrollToTop() {
 }
 
 export default function App() {
+  const location = useLocation()
+  const { role } = useUser()
+  
+  // Detect if we should use the new guest layout for discovery portal
+  const discoveryRoutes = ['/research', '/collaborators', '/preferences']
+  const isGuestDiscovery = discoveryRoutes.includes(location.pathname) && role === 'public'
+
   return (
-    <UserProvider>
-      <div className="app-root">
+    <div className="app-root">
         <ScrollToTop />
-        <Navbar />
+        {!isGuestDiscovery && <Navbar />}
         <main>
           <Routes>
             <Route path="/" element={<HomePage />} />
@@ -48,9 +54,8 @@ export default function App() {
             />
           </Routes>
         </main>
-        <Footer />
-      </div>
-    </UserProvider>
+        {!isGuestDiscovery && <Footer />}
+    </div>
   )
 }
 

@@ -12,7 +12,7 @@ const PORT = process.env.PORT || 3001;
 
 // Middleware
 app.use(cors({
-  origin: 'https://collaboration-portal-frontend.onrender.com'
+  origin: ['https://collaboration-portal-frontend.onrender.com', 'http://localhost:5173']
 }));
 app.use(express.json());
 

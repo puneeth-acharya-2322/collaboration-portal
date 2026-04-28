@@ -8,7 +8,7 @@ export default function LockOverlay({ type = 'project' }) {
       <div className="absolute inset-0 bg-white/40 backdrop-blur-[12px]" />
       
       <div className="relative z-20 flex flex-col items-center">
-        <div className="w-14 h-14 rounded-full bg-[var(--amber-l)] border border-[var(--amber)] flex items-center justify-center text-[var(--amber)] mb-4 shadow-sm">
+        <div className="w-14 h-14 rounded-full bg-[var(--dash-green-soft)] border border-[var(--dash-green)]/20 flex items-center justify-center text-[var(--dash-green)] mb-4 shadow-sm">
           <Lock size={24} strokeWidth={2.5} />
         </div>
         
@@ -20,7 +20,7 @@ export default function LockOverlay({ type = 'project' }) {
         <div className="flex flex-col gap-3 w-full max-w-[200px] mt-4">
           <Link 
             to="/admin/login" 
-            className="flex items-center justify-center gap-2 px-5 py-2.5 bg-[var(--navy)] text-white text-[12px] font-bold rounded-xl hover:shadow-lg transition-all"
+            className="flex items-center justify-center gap-2 px-5 py-2.5 bg-[var(--dash-green)] text-white text-[12px] font-bold rounded-xl hover:shadow-lg transition-all"
             style={{ textDecoration: 'none' }}
           >
             <LogIn size={14} />
@@ -35,7 +35,7 @@ export default function LockOverlay({ type = 'project' }) {
 
           <Link 
             to="/register" 
-            className="px-5 py-2.5 bg-white border border-[var(--navy)] text-[var(--navy)] text-[11px] font-bold rounded-xl hover:bg-slate-50 transition-all text-center"
+            className="px-5 py-2.5 bg-white border border-[var(--dash-green)] text-[var(--dash-green)] text-[11px] font-bold rounded-xl hover:bg-slate-50 transition-all text-center"
             style={{ textDecoration: 'none' }}
           >
             Create Researcher Account

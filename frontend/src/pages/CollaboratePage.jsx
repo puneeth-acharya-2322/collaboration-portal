@@ -2,53 +2,78 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Info, ChevronRight, User, Settings, Heart, Shield, HelpCircle, LogOut } from 'lucide-react'
 import { useUser } from '../context/UserContext'
+import DashboardLayout from '../components/DashboardLayout'
+import { Filter, Clock } from 'lucide-react'
 
 export default function CollaboratePage({ forceTab }) {
   const [tab, setTab] = useState(forceTab || 'matches') // 'matches' or 'prefs'
-  const { user, setRole } = useUser()
+  const { role, user, setRole } = useUser()
 
   useEffect(() => {
     if (forceTab) setTab(forceTab)
   }, [forceTab])
 
-  return (
-    <div className="min-h-screen bg-[var(--bg)]">
-      {/* Sub-navigation Tabs */}
-      <div className="subnav" style={{ position: 'sticky', top: '56px', zIndex: 90 }}>
-        <button 
-          className={`snb ${tab === 'matches' ? 'active' : ''}`}
-          onClick={() => setTab('matches')}
-        >
-          My Matches <span className="badge-count">12</span>
-        </button>
-        <button 
-          className={`snb ${tab === 'prefs' ? 'active' : ''}`}
-          onClick={() => setTab('prefs')}
-        >
-          Collaboration Prefs
-        </button>
-      </div>
+  const isGuest = role === 'public'
 
-      <div className="pw">
-        <div className="profile-wrap">
-          {/* LEFT SIDEBAR: Personal Card */}
-          <aside className="profile-card">
-            <div className="pc-banner">
-              <div className="pc-av-big">{user?.initials || 'DR'}</div>
-              <div className="pc-pname">{user?.name || 'Dr. Anitha Rao'}</div>
-              <div className="pc-pid">ID: {user?.id || 'FYRC-2401-92'}</div>
+  const content = (
+    <div className={isGuest ? "" : "min-h-screen bg-[var(--bg)]"}>
+      {/* Sub-navigation Tabs (Only show for registered users or if not using DashboardLayout) */}
+      {!isGuest && (
+        <div className="subnav" style={{ position: 'sticky', top: '56px', zIndex: 90 }}>
+          <button 
+            className={`snb ${tab === 'matches' ? 'active' : ''}`}
+            onClick={() => setTab('matches')}
+          >
+            My Matches <span className="badge-count">12</span>
+          </button>
+          <button 
+            className={`snb ${tab === 'prefs' ? 'active' : ''}`}
+            onClick={() => setTab('prefs')}
+          >
+            Collaboration Prefs
+          </button>
+        </div>
+      )}
+
+      {isGuest && (
+        <div className="dash-header">
+          <div>
+            <h1 className="dash-greeting">Collaboration Preferences</h1>
+            <div className="dash-sub-greeting">
+              {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+              {' · Kasturba Medical College · Configure your matching engine'}
             </div>
-            <div className="pc-actions">
-              <div className="pc-action-link"><span className="al-icon"><User size={14}/></span> Edit My Profile</div>
-              <div className="pc-action-link"><span className="al-icon"><Settings size={14}/></span> Account Settings</div>
-              <div className="pc-action-link"><span className="al-icon"><Shield size={14}/></span> Privacy Options</div>
-              <div className="divider"></div>
-              <div className="pc-action-link" style={{ color: 'var(--red)' }} onClick={() => setRole('public')}><span className="al-icon"><LogOut size={14}/></span> Sign Out</div>
-            </div>
-          </aside>
+          </div>
+          <div className="flex gap-3">
+             <button className="dash-main-btn">
+                <Clock size={16} /> Log Time
+             </button>
+          </div>
+        </div>
+      )}
+
+      <div className={isGuest ? "" : "pw"}>
+        <div className={isGuest ? "" : "profile-wrap"}>
+          {/* LEFT SIDEBAR: Personal Card (Only for registered) */}
+          {!isGuest && (
+            <aside className="profile-card">
+              <div className="pc-banner">
+                <div className="pc-av-big">{user?.initials || 'DR'}</div>
+                <div className="pc-pname">{user?.name || 'Dr. Anitha Rao'}</div>
+                <div className="pc-pid">ID: {user?.id || 'FYRC-2401-92'}</div>
+              </div>
+              <div className="pc-actions">
+                <div className="pc-action-link"><span className="al-icon"><User size={14}/></span> Edit My Profile</div>
+                <div className="pc-action-link"><span className="al-icon"><Settings size={14}/></span> Account Settings</div>
+                <div className="pc-action-link"><span className="al-icon"><Shield size={14}/></span> Privacy Options</div>
+                <div className="divider"></div>
+                <div className="pc-action-link" style={{ color: 'var(--red)' }} onClick={() => setRole('public')}><span className="al-icon"><LogOut size={14}/></span> Sign Out</div>
+              </div>
+            </aside>
+          )}
 
           {/* MAIN CONTENT AREA */}
-          <main>
+          <main className={isGuest ? "max-w-4xl" : ""}>
             {tab === 'matches' ? (
               <MatchesView />
             ) : (
@@ -59,6 +84,16 @@ export default function CollaboratePage({ forceTab }) {
       </div>
     </div>
   )
+
+  if (isGuest) {
+    return (
+      <DashboardLayout>
+        {content}
+      </DashboardLayout>
+    )
+  }
+
+  return content
 }
 
 function MatchesView() {

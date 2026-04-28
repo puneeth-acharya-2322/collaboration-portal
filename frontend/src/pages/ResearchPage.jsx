@@ -1,14 +1,25 @@
 import { useState, useEffect } from 'react'
 import { getProjects } from '../api'
-import { Search, Info, Check, Filter, Lock, AlertCircle } from 'lucide-react'
-import LockOverlay from '../components/LockOverlay'
+import { Search, Filter, Clock, Briefcase, MinusCircle, ChevronDown } from 'lucide-react'
 import { useUser } from '../context/UserContext'
+import DashboardLayout from '../components/DashboardLayout'
+import ProjectDetailModal from '../components/ProjectDetailModal'
 
 export default function ResearchPage({ forceView }) {
   const { role } = useUser()
-  const [view, setView] = useState(forceView || 'proj') // 'proj' or 'seeker'
+  const [view, setView] = useState(forceView || 'proj') 
   const [projects, setProjects] = useState([])
   const [loading, setLoading] = useState(true)
+
+  // Filtering State
+  const [searchTerm, setSearchTerm] = useState('')
+  const [statusFilter, setStatusFilter] = useState('All')
+  const [domainFilter, setDomainFilter] = useState('All')
+  const [typeFilter, setTypeFilter] = useState('All')
+  const [timeFilter, setTimeFilter] = useState('All')
+  const [skillFilter, setSkillFilter] = useState([])
+
+  const [selectedProject, setSelectedProject] = useState(null)
 
   useEffect(() => {
     if (forceView) setView(forceView)
@@ -26,238 +37,204 @@ export default function ResearchPage({ forceView }) {
       })
   }, [])
 
-  return (
-    <div className="min-h-screen bg-[var(--bg)]">
-      {/* Sub-navigation Tabs */}
-      <div className="subnav" style={{ position: 'sticky', top: '56px', zIndex: 90 }}>
-        <button 
-          className={`snb ${view === 'proj' ? 'active' : ''}`}
-          onClick={() => setView('proj')}
-        >
-          Research Projects <span className="badge-count">{projects.length}</span>
-        </button>
-        <button 
-          className={`snb ${view === 'seeker' ? 'active' : ''}`}
-          onClick={() => setView('seeker')}
-        >
-          Collaborators <span className="badge-count">142</span>
-        </button>
+  // Filtering Logic
+  const filteredProjects = projects.filter(proj => {
+    const matchesSearch = !searchTerm || 
+                          proj.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                          proj.shortDescription?.toLowerCase().includes(searchTerm.toLowerCase())
+    
+    const matchesStatus = statusFilter === 'All' || proj.status === statusFilter
+    const matchesDomain = domainFilter === 'All' || proj.domain === domainFilter
+    const matchesType = typeFilter === 'All' || proj.type === typeFilter
+    
+    let matchesTime = true
+    if (timeFilter === '< 5h') matchesTime = proj.hoursPerWeek < 5
+    else if (timeFilter === '5-10h') matchesTime = proj.hoursPerWeek >= 5 && proj.hoursPerWeek <= 10
+    else if (timeFilter === '10h+') matchesTime = proj.hoursPerWeek > 10
+
+    const matchesSkills = skillFilter.length === 0 || skillFilter.every(s => proj.skills?.includes(s))
+
+    return matchesSearch && matchesStatus && matchesDomain && matchesTime && matchesType && matchesSkills
+  })
+
+  const isGuest = role === 'public'
+
+  const content = (
+    <>
+      <div className="dash-header">
+        <div>
+          <h1 className="dash-greeting">
+            {view === 'proj' ? 'Research Discovery Portal' : 'Potential Research Partners'}
+          </h1>
+          <div className="dash-sub-greeting">
+            {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+            {' · Kasturba Medical College · '}
+            {view === 'proj' ? `${filteredProjects.length} Projects` : '142 Researchers'}
+          </div>
+        </div>
+        <div className="flex gap-3">
+          <button className="dash-filter-btn" onClick={() => { setSearchTerm(''); setStatusFilter('All'); setDomainFilter('All'); setTimeFilter('All'); setTypeFilter('All'); setSkillFilter([]); }}>
+            <Filter size={16} /> Reset Filters
+          </button>
+        </div>
       </div>
 
-      <div className="pw">
-        <div className="split">
-          {/* SIDEBAR FILTERS */}
-          <aside className="sidebar">
-            <div className="sb-header">
-              Refine Search
-              <button className="sb-clear">Clear all</button>
-            </div>
+      {view === 'proj' ? (
+        <>
+          {/* FILTERS BAR */}
+          <div className="dash-filters-row">
+            <FilterSelect 
+              label="Project Status" 
+              value={statusFilter} 
+              onChange={setStatusFilter} 
+              options={['Ongoing', 'Upcoming', 'Closing Soon']} 
+            />
+            <FilterSelect 
+              label="Domain" 
+              value={domainFilter} 
+              onChange={setDomainFilter} 
+              options={['NLP in Healthcare', 'Medical Imaging', 'Predictive Analytics', 'Clinical Decision AI', 'Drug Discovery AI']} 
+            />
+            <FilterSelect 
+              label="Type" 
+              value={typeFilter} 
+              onChange={setTypeFilter} 
+              options={['Project', 'Paper']} 
+            />
+            <FilterSelect 
+              label="Time" 
+              value={timeFilter} 
+              onChange={setTimeFilter} 
+              options={['< 5h', '5-10h', '10h+']} 
+            />
+          </div>
 
-            <div className="sb-section">
-              <div className="sb-title">Project Status <span className="sb-arrow">▼</span></div>
-              <div className="sb-options">
-                <label className="sb-opt active"><input type="radio" name="status" defaultChecked /> Open to All</label>
-                <label className="sb-opt"><input type="radio" name="status" /> Ongoing</label>
-                <label className="sb-opt"><input type="radio" name="status" /> Upcoming</label>
-              </div>
-            </div>
-
-            <div className="sb-section">
-              <div className="sb-title">Domain <span className="sb-arrow">▼</span></div>
-              <div className="sb-options">
-                <label className="sb-opt"><input type="checkbox" /> Medical Imaging</label>
-                <label className="sb-opt"><input type="checkbox" /> Clinical NLP</label>
-                <label className="sb-opt"><input type="checkbox" /> Predictive Analytics</label>
-                <label className="sb-opt"><input type="checkbox" /> Health Informatics</label>
-              </div>
-            </div>
-
-            <div className="sb-section">
-              <div className="sb-title">Time Commitment <span className="sb-arrow">▼</span></div>
-              <div className="sb-range">
-                <input type="range" min="0" max="20" />
-                <span className="sb-range-val">10h</span>
-              </div>
-            </div>
-            
-            <div className="sb-section">
-              <div className="sb-title">Match Level <span className="sb-arrow">▼</span></div>
-              <div className="sb-options">
-                 <label className="sb-opt"><input type="checkbox" /> &gt; 80% Match</label>
-                 <label className="sb-opt"><input type="checkbox" /> Handpicked for you</label>
-              </div>
-            </div>
-          </aside>
-
-          {/* MAIN RESULTS */}
-          <main>
-            {/* AMBER ALERT BANNER (Only for Public Users) */}
-            {role === 'public' && (
-              <div className="lock-banner">
-                <AlertCircle size={16} style={{ color: 'var(--amber)' }} />
-                <div>
-                  <span className="font-bold">2 private projects are hidden.</span>{' '}
-                  <span className="underline cursor-pointer">Login or register</span> to see all projects including department-private listings.
-                </div>
+          <div className="proj-grid">
+            {filteredProjects.map(project => (
+              <PremiumProjectCard key={project.id} project={project} onOpen={() => setSelectedProject(project)} />
+            ))}
+            {filteredProjects.length === 0 && (
+              <div className="col-span-full py-20 text-center text-gray-400 bg-white rounded-2xl border border-dashed border-gray-200">
+                <Search className="mx-auto mb-4 opacity-10" size={48} />
+                <h3 className="text-lg font-bold text-gray-600">No matches found</h3>
+                <p className="text-sm">Try broadening your search or clearing all filters.</p>
               </div>
             )}
-
-            <div className="results-header">
-              <div className="results-title">
-                {view === 'proj' ? 'Projects matching your preferences' : 'Potential Research Partners'}
-              </div>
-              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                <span className="results-count">Showing {view === 'proj' ? projects.length : '142'} matches</span>
-                <select className="sort-sel">
-                  <option>Best Match</option>
-                  <option>Newest First</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="results-list">
-              {view === 'proj' ? (
-                projects.map(project => <ProjectCard key={project.id} project={project} />)
-              ) : (
-                <ResearcherList />
-              )}
-            </div>
-          </main>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function ProjectCard({ project }) {
-  const piName = project.pi?.name || project.pi || 'Dr. Principal Investigator';
-  const piAvatar = piName.slice(0, 2).toUpperCase();
-  const { role } = useUser();
-  const isLocked = project.visibility === 'private' && role === 'public';
-
-  return (
-    <div className={`project-card ${isLocked ? 'relative overflow-hidden' : ''}`}>
-      {isLocked && <LockOverlay />}
-
-      <div className="pc-left">
-        <div className="pc-top">
-          <div className="pc-avatar" style={{ background: 'var(--teal)' }}>
-            {piAvatar}
           </div>
-          <div>
-            <div className="pc-title">{project.title}</div>
-            <div className="pc-pi">{piName} · {project.domain || 'AI Healthcare'}</div>
-          </div>
+        </>
+      ) : (
+        <div className="py-20 text-center text-gray-400 bg-white rounded-xl border border-dashed border-gray-200">
+          <Briefcase className="mx-auto mb-4 opacity-20" size={48} />
+          <h3 className="text-lg font-bold text-gray-700">Collaborator Discovery</h3>
+          <p className="text-sm max-w-xs mx-auto">This feature is coming soon to the premium portal. You will be able to browse faculty and researchers by expertise.</p>
         </div>
-        
-        <div className="pc-meta">
-          <span className={`pc-tag ${project.status === 'Ongoing' ? 'tag-status-on' : 'tag-status-up'}`}>
-            {project.status || 'Ongoing'}
-          </span>
-          {project.skills?.slice(0, 3).map(skill => (
-            <span key={skill} className="pc-tag tag-skill">{skill}</span>
-          ))}
-          {project.skills?.length > 3 && <span className="pc-tag tag-skill">+{project.skills.length - 3}</span>}
-          
-          <span className={`pc-tag ${project.visibility === 'public' ? 'tag-public' : 'tag-private'}`}>
-             {project.visibility === 'public' ? '🌐 Public' : '🔒 Private'}
-          </span>
-        </div>
-
-        <p className="pc-abstract">
-          {project.shortDescription || "Building a specialized AI model targeting clinical datasets for improved diagnostic accuracy and workflow efficiency."}
-        </p>
-
-        <div className="pc-footer">
-          {project.perks?.map(perk => (
-             <div key={perk} className="pc-perk"><Check size={10} strokeWidth={3} className="text-teal-600" /> {perk}</div>
-          ))}
-          {!project.perks && (
-            <>
-               <div className="pc-perk"><Check size={10} strokeWidth={3} /> Co-authorship</div>
-               <div className="pc-perk"><Check size={10} strokeWidth={3} /> Clinical Data Access</div>
-            </>
-          )}
-        </div>
-      </div>
-      
-      <div className="pc-right">
-        {/* Match score ring as seen in reference */}
-        <div style={{ position: 'relative', width: '60px', height: '60px' }} className="mb-2">
-          <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-             <circle 
-                cx="18" cy="18" r="16" 
-                fill="none" 
-                stroke="#f0f3f7" 
-                strokeWidth="3" 
-             />
-             <circle 
-                cx="18" cy="18" r="16" 
-                fill="none" 
-                stroke="var(--teal)" 
-                strokeWidth="3" 
-                strokeDasharray="100" 
-                strokeDashoffset="15" 
-                strokeLinecap="round" 
-             />
-          </svg>
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
-             <div className="text-[12px] font-bold text-[var(--navy)]">91%</div>
-             <div className="text-[7px] text-[var(--muted)] font-bold uppercase">match</div>
-          </div>
-        </div>
-
-        <button className="collab-btn">View details</button>
-        <div className="lock-note mt-2">Login to apply</div>
-      </div>
-    </div>
-  )
-}
-
-function ResearcherList() {
-  const researchers = [
-    { name: 'Dr. Anitha Rao', desig: 'Assistant Professor · AI in Healthcare, KMC', skills: ['Medical Imaging', 'NLP', 'PyTorch'], avail: true, metrics: { hindex: 8, pubs: 24, urgency: '8/10' } },
-    { name: 'Dr. Priya Ramesh', desig: 'Associate Professor · Ophthalmology, KMC', skills: ['Medical Imaging', 'Clinical Decisions', 'DICOM'], avail: true, metrics: { hindex: 11, pubs: 31, urgency: '6/10' } }
-  ]
-
-  return (
-    <>
-      {researchers.map(r => (
-        <div key={r.name} className="seeker-card">
-          <div className="pc-left">
-            <div className="pc-top">
-              <div className="sk-av" style={{ background: 'var(--navy)' }}>{r.name.split(' ').map(n=>n[0]).join('')}</div>
-              <div>
-                <div className="sk-name">{r.name} <span className={`sk-avail ${r.avail ? 'avail-on' : 'avail-off'}`} style={{ display: 'inline-block', marginLeft: '6px' }} /> <span className="text-[10px] text-green-600 font-bold">Available</span></div>
-                <div className="sk-desig">{r.desig}</div>
-              </div>
-            </div>
-            <div className="pc-meta">
-              {r.skills.map(s => <span key={s} className="pc-tag tag-skill">{s}</span>)}
-            </div>
-            <div className="sk-metrics mt-1">
-              <div className="sk-metric"><strong>{r.metrics.hindex}</strong> h-index</div>
-              <div className="sk-metric"><strong>{r.metrics.pubs}</strong> publications</div>
-              <div className="sk-metric">Urgency: <strong className="text-red-600">{r.metrics.urgency}</strong></div>
-            </div>
-            <p className="pc-abstract mt-2">Seeking computer vision specialist for retinal imaging data engineer for DICOM pipeline validation...</p>
-          </div>
-          <div className="pc-right">
-             <div style={{ position: 'relative', width: '60px', height: '60px' }} className="mb-2">
-                <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-                   <circle cx="18" cy="18" r="16" fill="none" stroke="#f0f3f7" strokeWidth="3" />
-                   <circle cx="18" cy="18" r="16" fill="none" stroke="var(--teal)" strokeWidth="3" strokeDasharray="100" strokeDashoffset="22" strokeLinecap="round" />
-                </svg>
-                <div className="absolute inset-0 flex flex-col items-center justify-center">
-                   <div className="text-[12px] font-bold text-[var(--navy)]">78%</div>
-                   <div className="text-[7px] text-[var(--muted)] font-bold uppercase">match</div>
-                </div>
-             </div>
-             <button className="collab-btn teal">View profile</button>
-          </div>
-        </div>
-      ))}
+      )}
+      {selectedProject && (
+        <ProjectDetailModal project={selectedProject} onClose={() => setSelectedProject(null)} />
+      )}
     </>
   )
+
+  if (isGuest) {
+    return (
+      <DashboardLayout searchValue={searchTerm} onSearchChange={setSearchTerm}>
+        {content}
+      </DashboardLayout>
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-[var(--bg)]">
+      <div className="pw py-12">
+        {content}
+      </div>
+    </div>
+  )
 }
 
+function PremiumProjectCard({ project, onOpen }) {
+  const piName = project.pi?.name || project.pi || 'Dr. Principal Investigator';
+  const initials = piName.split(' ').map(n => n[0]).join('')
+  const { role } = useUser();
+  return (
+    <div className="pc-premium group hover-lift" onClick={onOpen}>
+      <div className="pc-premium-header">
+        <div className="pc-premium-pi">
+          <div className="pc-premium-av">{initials}</div>
+          <div className="pc-premium-pi-info">
+            <span className="pc-premium-pi-name">{piName}</span>
+            <span className="pc-premium-pi-role">Principal Investigator</span>
+          </div>
+        </div>
+      </div>
+
+      <h3 className="pc-premium-title">{project.title}</h3>
+      <div className="pc-premium-meta">{project.domain || 'AI Healthcare'}</div>
+      
+      <p className="pc-premium-desc line-clamp-3">{project.shortDescription}</p>
+
+      <div className="pc-premium-tags">
+        <span className="pc-premium-tag" style={{ background: 'var(--dash-green-soft)', color: 'var(--dash-green)' }}>
+          {project.status || 'Ongoing'}
+        </span>
+        {project.skills?.slice(0, 2).map(skill => (
+          <span key={skill} className="pc-premium-tag">{skill}</span>
+        ))}
+      </div>
+
+      <div className="pc-premium-footer">
+        <button onClick={(e) => { e.stopPropagation(); onOpen(); }} className="pc-premium-btn">
+          View Detail
+        </button>
+      </div>
+    </div>
+  )
+}
+
+function FilterSelect({ label, value, onChange, options }) {
+  const [open, setOpen] = useState(false)
+  const isSelected = value !== 'All'
+
+  return (
+    <div className="relative">
+      <button 
+        onClick={() => setOpen(!open)}
+        className={`dash-filter-btn flex items-center gap-2 outline-none transition-all ${isSelected ? 'border-[var(--dash-green)] bg-[var(--dash-green)] text-white' : ''}`}
+      >
+        {isSelected ? value : label}
+        {isSelected ? (
+          <MinusCircle 
+            size={14} 
+            className="text-white/70 hover:text-white" 
+            onClick={(e) => { e.stopPropagation(); onChange('All'); }} 
+          />
+        ) : (
+          <ChevronDown size={14} className="text-gray-400" />
+        )}
+      </button>
+
+      {open && (
+        <>
+          <div className="fixed inset-0 z-[100]" onClick={() => setOpen(false)} />
+          <div className="absolute top-full left-0 mt-2 w-56 bg-white border border-gray-100 rounded-xl shadow-2xl z-[110] py-2 animate-fade-in">
+            <button 
+              className="w-full text-left px-4 py-2 text-xs font-bold text-gray-500 hover:bg-gray-50"
+              onClick={() => { onChange('All'); setOpen(false); }}
+            >
+              All {label}
+            </button>
+            {options.map(opt => (
+              <button 
+                key={opt}
+                className={`w-full text-left px-4 py-2 text-xs font-bold transition-colors ${value === opt ? 'bg-[var(--dash-green)] text-white' : 'text-[var(--dash-text)] hover:bg-gray-50'}`}
+                onClick={() => { onChange(opt); setOpen(false); }}
+              >
+                {opt}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  )
+}

@@ -1,5 +1,6 @@
 import { Link, useLocation } from 'react-router-dom'
 import { useUser } from '../context/UserContext'
+import logo from '../assets/logo.jpeg'
 
 export default function Navbar() {
   const location = useLocation()
@@ -22,20 +23,23 @@ export default function Navbar() {
   return (
     <header className="font-['DM_Sans',sans-serif]">
       {/* ── BAR 1: BRANDING & PORTAL NAV ── */}
-      <div className="topbar">
-        <Link to="/" className="logo-box" style={{ textDecoration: 'none' }}>K</Link>
+      <div className="topbar" style={{ background: '#fff', borderBottom: '1px solid var(--dash-border)' }}>
+        <Link to="/" className="logo-box">
+          <img src={logo} alt="KMC Logo" />
+        </Link>
         
         <div className="brand-wrap">
-          <div className="brand">KMC · Department of AI in Healthcare</div>
-          <div className="brand-sub">FYRC — Find Your Research Collaborator Portal</div>
+          <div className="brand" style={{ color: 'var(--dash-text)' }}>KMC · Department of AI in Healthcare</div>
+          <div className="brand-sub" style={{ color: 'var(--dash-muted)' }}>FYRC — Research Portal</div>
         </div>
 
-        <nav className="portal-nav">
+        <nav className="portal-nav" style={{ background: 'var(--dash-bg)' }}>
           {role !== 'public' && portalNav.map((item) => (
             <Link
               key={item.path}
               to={item.path}
               className={`pnb ${isActive(item.path) ? 'active' : ''}`}
+              style={{ color: isActive(item.path) ? 'var(--dash-green)' : 'var(--dash-muted)' }}
             >
               {item.name}
               {item.badge && <span className="badge-count">{item.badge}</span>}
@@ -44,53 +48,42 @@ export default function Navbar() {
         </nav>
         
         <div className="user-area-wrap">
-          {/* User Pill (Only show if logged in or viewing as user/admin) */}
-          {user && (
-            <div className="user-pill group relative">
-              <div className="user-av">{user.initials}</div>
-              <div className="user-info-text">
-                <span className="user-name">{user.name}</span>
-                <span className="user-role-label">{user.role}</span>
-              </div>
-            </div>
-          )}
-
           {role === 'public' && (
-            <Link to="/admin/login" className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-[11px] font-bold rounded-lg transition-all" style={{ textDecoration: 'none' }}>
-              LOGIN
+            <Link to="/admin/login" className="dash-filter-btn" style={{ textDecoration: 'none' }}>
+              LOGIN / REGISTER
             </Link>
           )}
 
-          {/* Role Switcher (View as...) */}
-          <div className="role-switcher">
-            <span style={{ fontSize: '9px', color: 'rgba(255,255,255,.3)', marginLeft: '6px', fontWeight: 700 }}>VIEW AS:</span>
+          {/* Role Switcher */}
+          <div className="role-switcher" style={{ background: 'var(--dash-bg)', borderColor: 'var(--dash-border)' }}>
             {['public', 'user', 'faculty', 'admin'].map((r) => (
               <button
                 key={r}
                 className={`rs-btn ${role === r ? 'on' : ''}`}
                 onClick={() => setRole(r)}
+                style={{ 
+                  background: role === r ? 'var(--dash-green)' : 'transparent',
+                  color: role === r ? '#fff' : 'var(--dash-muted)'
+                }}
               >
                 {r}
               </button>
             ))}
           </div>
-
-          {/* Admin Link */}
-          {role === 'admin' && (
-             <Link to="/admin" className="px-3 py-1.5 bg-[var(--gold)] text-[var(--navy)] text-[10px] font-bold rounded-lg hover:shadow-lg transition-all" style={{ textDecoration: 'none' }}>
-                ADMIN DASHBOARD
-             </Link>
-          )}
         </div>
       </div>
 
       {/* ── BAR 2: DISCOVERY LINKS ── */}
-      <div className="subnav-discovery">
+      <div className="subnav-discovery" style={{ background: '#fff', borderBottom: '1px solid var(--dash-border)' }}>
         {discoveryNav.map((item) => (
           <Link
             key={item.path}
             to={item.path}
             className={`snb-d ${isActive(item.path) ? 'active' : ''}`}
+            style={{ 
+              color: isActive(item.path) ? 'var(--dash-green)' : 'var(--dash-muted)',
+              borderColor: isActive(item.path) ? 'var(--dash-green)' : 'transparent'
+            }}
           >
             {item.name}
           </Link>
