@@ -157,7 +157,7 @@ function PremiumProjectCard({ project, onOpen }) {
   const initials = piName.split(' ').map(n => n[0]).join('')
   const { role } = useUser();
   return (
-    <div className="pc-premium group hover-lift" onClick={onOpen}>
+    <div className="proj-card-premium group hover-lift" onClick={onOpen}>
       <div className="pc-premium-header">
         <div className="pc-premium-pi">
           <div className="pc-premium-av">{initials}</div>
