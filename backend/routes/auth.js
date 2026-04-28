@@ -10,12 +10,26 @@ const router = express.Router();
 const USERS_FILE = path.join(__dirname, '..', 'data', 'users.json');
 
 function readUsers() {
-  if (!fs.existsSync(USERS_FILE)) return [];
-  return JSON.parse(fs.readFileSync(USERS_FILE, 'utf8'));
+  try {
+    if (!fs.existsSync(USERS_FILE)) {
+      fs.writeFileSync(USERS_FILE, '[]', 'utf8');
+      return [];
+    }
+    let raw = fs.readFileSync(USERS_FILE, 'utf8');
+    // Strip BOM (UTF-8 or UTF-16) if present
+    raw = raw.replace(/^\uFEFF/, '').trim();
+    if (!raw || raw === '') return [];
+    return JSON.parse(raw);
+  } catch (err) {
+    console.error('❌ readUsers error:', err.message);
+    // Reset corrupt file
+    fs.writeFileSync(USERS_FILE, '[]', 'utf8');
+    return [];
+  }
 }
 
 function writeUsers(users) {
-  fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2));
+  fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 2), { encoding: 'utf8' });
 }
 
 // POST /api/auth/register

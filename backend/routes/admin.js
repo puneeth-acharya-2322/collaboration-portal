@@ -8,11 +8,18 @@ const USERS_FILE = path.join(__dirname, '..', 'data', 'users.json');
 const PROJECTS_FILE = path.join(__dirname, '..', 'data', 'projects.json');
 
 function readData(file) {
-  return JSON.parse(fs.readFileSync(file, 'utf8'));
+  try {
+    let raw = fs.readFileSync(file, 'utf8');
+    raw = raw.replace(/^\uFEFF/, '').trim();
+    return JSON.parse(raw);
+  } catch (err) {
+    console.error(`❌ readData error (${path.basename(file)}):`, err.message);
+    return [];
+  }
 }
 
 function writeData(file, data) {
-  fs.writeFileSync(file, JSON.stringify(data, null, 2));
+  fs.writeFileSync(file, JSON.stringify(data, null, 2), { encoding: 'utf8' });
 }
 
 // Middleware to ensure role is admin

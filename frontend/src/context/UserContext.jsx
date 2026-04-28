@@ -5,6 +5,7 @@ const UserContext = createContext();
 export const UserProvider = ({ children }) => {
   const [role, setRole] = useState(localStorage.getItem('preview_role') || 'public');
   const [user, setUser] = useState(null);
+  const [token, setToken] = useState(localStorage.getItem('faculty_token') || null);
 
   // Sync role to localStorage for persistence during development
   useEffect(() => {
@@ -27,7 +28,7 @@ export const UserProvider = ({ children }) => {
   }, [role]);
 
   return (
-    <UserContext.Provider value={{ role, setRole, user }}>
+    <UserContext.Provider value={{ role, setRole, user, setUser, token, setToken }}>
       {children}
     </UserContext.Provider>
   );

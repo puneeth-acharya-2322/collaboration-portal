@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useUser } from '../context/UserContext'
-import { Loader2, Eye, EyeOff, Apple, ChevronRight, ChevronLeft } from 'lucide-react'
+import { Loader2, Eye, EyeOff, ChevronRight, ChevronLeft } from 'lucide-react'
 import logo from '../assets/logo.jpeg'
 import illustration from '../assets/auth-flat.png'
 
@@ -99,11 +99,14 @@ function StepBar({ step }) {
 }
 
 /* ─── Main Component ────────────────────────────────────── */
+const API = import.meta.env.VITE_API_URL || 'http://localhost:3001'
+
 export default function AuthPage() {
-  const [isLogin,  setIsLogin]  = useState(true)
-  const [regStep,  setRegStep]  = useState(0)
-  const [loading,  setLoading]  = useState(false)
-  const [error,    setError]    = useState('')
+  const [isLogin,    setIsLogin]    = useState(true)
+  const [regStep,    setRegStep]    = useState(0)
+  const [regSuccess, setRegSuccess] = useState(false)
+  const [loading,    setLoading]    = useState(false)
+  const [error,      setError]      = useState('')
 
   // Login
   const [email,    setEmail]    = useState('')
@@ -138,34 +141,62 @@ export default function AuthPage() {
   const [b3,       setB3]       = useState('')
 
   const navigate = useNavigate()
-  const { setRole, setUser } = useUser()
+  const { setRole, setUser, setToken } = useUser()
 
-  const handleLogin = (e) => {
+  // ── Real Login ──────────────────────────────────────────
+  const handleLogin = async (e) => {
     e.preventDefault(); setLoading(true); setError('')
-    setTimeout(() => {
-      if (email && password) {
-        setRole('user')
-        setUser({ name: 'Dr. Researcher', initials: 'DR', id: 'FYRC-2401-92' })
-        navigate('/research')
-      } else setError('Please fill in all fields.')
+    try {
+      const res = await fetch(`${API}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Login failed.')
+      localStorage.setItem('faculty_token', data.token)
+      setToken(data.token)
+      setRole('user')
+      const initials = (data.name || 'Dr Researcher').split(' ').map(n => n[0]).join('')
+      setUser({ name: data.name || 'Dr. Researcher', initials, id: data.id || 'FYRC-2401' })
+      navigate('/collaborate')
+    } catch (err) {
+      setError(err.message)
+    } finally {
       setLoading(false)
-    }, 1400)
+    }
   }
 
-  const handleStep = (e) => {
+  // ── Real Registration (final step submit) ───────────────
+  const handleStep = async (e) => {
     e.preventDefault(); setError('')
     if (regStep < 3) { setRegStep(s => s + 1); return }
     setLoading(true)
-    setTimeout(() => {
-      setRole('user')
-      setUser({ name: fullName || 'Dr. Researcher', initials: fullName.split(' ').map(n => n[0]).join('') || 'DR', id: 'FYRC-2401-92' })
-      navigate('/research')
+    try {
+      const res = await fetch(`${API}/api/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: `${title} ${fullName}`.trim(),
+          email: rEmail,
+          password: rPwd,
+          department: dept || inst,
+          roleTitle: desig,
+          phone, exp, scopus, orcid, hIndex, pubs, domains, skills, collab, avail,
+          expertise: [b1, b2, b3].filter(Boolean),
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Registration failed.')
+      setRegSuccess(true)
+    } catch (err) {
+      setError(err.message)
+    } finally {
       setLoading(false)
-    }, 1500)
+    }
   }
 
-  const switchMode = () => { setIsLogin(!isLogin); setError(''); setRegStep(0) }
-  const fillFaculty = () => { setEmail('researcher@kmc.edu'); setPassword('password123') }
+  const switchMode = () => { setIsLogin(!isLogin); setError(''); setRegStep(0); setRegSuccess(false) }
 
   return (
     <>
@@ -183,55 +214,45 @@ export default function AuthPage() {
         <div style={{ width:'100%', maxWidth:1120, minHeight:660, borderRadius:28, overflow:'hidden', display:'flex', boxShadow:'0 24px 64px rgba(0,0,0,0.14)' }}>
 
           {/* ── LEFT PANEL ──────────────────────────────── */}
-          <div style={{ flex:1, background: NAVY, display:'flex', flexDirection:'column', padding:'2.2rem', position:'relative', overflow:'hidden' }}>
+          <div style={{ flex:1, background: GREEN, display:'flex', flexDirection:'column', padding:'2.2rem', position:'relative', overflow:'hidden' }}>
             {/* grid overlay */}
-            <div style={{ position:'absolute', inset:0, backgroundImage:'linear-gradient(rgba(255,255,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.03) 1px,transparent 1px)', backgroundSize:'36px 36px', pointerEvents:'none' }}/>
+            <div style={{ position:'absolute', inset:0, backgroundImage:'linear-gradient(rgba(0,0,0,0.06) 1px,transparent 1px),linear-gradient(90deg,rgba(0,0,0,0.06) 1px,transparent 1px)', backgroundSize:'36px 36px', pointerEvents:'none' }}/>
             {/* white strip at bottom */}
-            <div style={{ position:'absolute', bottom:0, left:0, right:0, height:'36%', background:'#f8fafc', borderRadius:'24px 24px 0 0' }}/>
+            <div style={{ position:'absolute', bottom:0, left:0, right:0, height:'18%', background:'#f8fafc', borderRadius:'24px 24px 0 0' }}/>
 
             {/* Brand */}
-            <div style={{ display:'flex', alignItems:'center', gap:10, position:'relative', zIndex:2 }}>
-              <div style={{ width:34, height:34, background:'#fff', borderRadius:9, display:'flex', alignItems:'center', justifyContent:'center', overflow:'hidden' }}>
-                <img src={logo} alt="FYRC" style={{ width:22, height:22, objectFit:'contain' }}/>
+            <div style={{ display:'flex', alignItems:'center', gap:12, position:'relative', zIndex:2 }}>
+              <div style={{ width:48, height:48, background:'#fff', borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', overflow:'hidden', flexShrink:0, boxShadow:'0 2px 8px rgba(0,0,0,0.15)' }}>
+                <img src={logo} alt="KMC" style={{ width:36, height:36, objectFit:'contain' }}/>
               </div>
-              <span style={{ fontWeight:800, fontSize:'1.1rem', color:'#fff', letterSpacing:'0.02em' }}>FYRC</span>
+              <span style={{ fontWeight:800, fontSize:'1rem', color:'#fff', letterSpacing:'0.01em', lineHeight:1.3 }}>Kasturba Medical College, Manipal</span>
             </div>
 
             {/* Hero */}
             <div style={{ position:'relative', zIndex:2, marginTop:'1.75rem' }}>
               <h1 style={{ fontSize:'2.4rem', fontWeight:800, color:'#fff', lineHeight:1.15, marginBottom:4 }}>Sign in to</h1>
-              <h2 style={{ fontSize:'1.2rem', fontWeight:700, color: GREEN, marginBottom:'0.7rem' }}>KMC Research Discovery</h2>
+              <h2 style={{ fontSize:'1.2rem', fontWeight:700, color:'#fff', marginBottom:'0.7rem' }}>KMC Research Discovery</h2>
               <p style={{ fontSize:'0.8rem', color:'rgba(255,255,255,0.42)', lineHeight:1.7, maxWidth:320 }}>
                 Discover collaborative opportunities, manage your research portfolio, and connect with domain experts across MAHE.
               </p>
             </div>
 
-            {/* Illustration */}
-            <div style={{ position:'relative', zIndex:2, flex:1, display:'flex', alignItems:'center', justifyContent:'center' }}>
-              <img src={illustration} alt="Research" style={{ maxWidth:'88%', maxHeight:250, objectFit:'contain', filter:'drop-shadow(0 16px 32px rgba(0,0,0,0.22))', animation:'authFloat 4s ease-in-out infinite' }}/>
+            {/* Discover Projects CTA */}
+            <div style={{ position:'relative', zIndex:2, marginTop:'1.2rem' }}>
+              <button
+                onClick={() => navigate('/research')}
+                style={{ width:'100%', padding:'0.75rem 1.2rem', background:'rgba(255,255,255,0.22)', color:'#fff', border:'2px solid rgba(255,255,255,0.8)', borderRadius:12, cursor:'pointer', fontSize:'0.92rem', fontWeight:700, fontFamily:'inherit', display:'flex', alignItems:'center', justifyContent:'center', gap:8, transition:'all 0.2s' }}
+                onMouseEnter={e => { e.currentTarget.style.background='rgba(255,255,255,0.36)' }}
+                onMouseLeave={e => { e.currentTarget.style.background='rgba(255,255,255,0.22)' }}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                Discover Projects
+              </button>
             </div>
 
-            {/* Login as */}
-            <div style={{ position:'relative', zIndex:2 }}>
-              <div style={{ fontSize:'0.68rem', fontWeight:700, color:'#6b7a8d', textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:'0.75rem' }}>Login as</div>
-              <div style={{ display:'flex', gap:'0.8rem', flexWrap:'wrap' }}>
-                {[
-                  { name:'John Peter', sub:'Faculty · 1d ago', img:'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=100&q=80', action: fillFaculty },
-                  { name:'Alina Shmen', sub:'Admin · 4d ago',  img:'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=100&q=80', action: () => navigate('/admin/login') },
-                ].map(c => (
-                  <div key={c.name} className="rc" onClick={c.action} role="button" tabIndex={0}
-                    style={{ background:'#fff', border:'1.5px solid #e5eaf1', borderRadius:16, padding:'0.65rem 0.9rem', display:'flex', alignItems:'center', gap:'0.7rem', width:185, cursor:'pointer', position:'relative', transition:'all 0.2s', boxShadow:'0 4px 12px rgba(0,0,0,0.06)' }}>
-                    <div style={{ width:40, height:40, borderRadius:10, overflow:'hidden', border:'2px solid #e5eaf1', flexShrink:0 }}>
-                      <img src={c.img} alt={c.name} style={{ width:'100%', height:'100%', objectFit:'cover' }}/>
-                    </div>
-                    <div>
-                      <div style={{ fontSize:'0.8rem', fontWeight:700, color: NAVY, lineHeight:1.2 }}>{c.name}</div>
-                      <div style={{ fontSize:'0.68rem', color:'#8899aa', marginTop:2, fontWeight:500 }}>{c.sub}</div>
-                    </div>
-                    <div className="ra" style={{ position:'absolute', top:8, right:8, width:16, height:16, background:'#f0f3f7', borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:10, color:'#8899aa', transition:'all 0.2s' }}>›</div>
-                  </div>
-                ))}
-              </div>
+            {/* Illustration */}
+            <div style={{ position:'relative', zIndex:2, flex:1, display:'flex', alignItems:'center', justifyContent:'center', minHeight:0 }}>
+              <img src={illustration} alt="Research" style={{ maxWidth:'88%', maxHeight:200, objectFit:'contain', filter:'drop-shadow(0 16px 32px rgba(0,0,0,0.22))', animation:'authFloat 4s ease-in-out infinite' }}/>
             </div>
           </div>
 
@@ -239,11 +260,12 @@ export default function AuthPage() {
           <div style={{ width:480, flexShrink:0, background:'#f8fafc', display:'flex' }}>
             <div style={{ background:'#fff', width:'100%', borderRadius:'0 28px 28px 0', padding:'2.2rem 2.6rem', display:'flex', flexDirection:'column', overflowY:'auto', boxShadow:'-6px 0 30px rgba(0,0,0,0.05)' }}>
 
-              {/* Top row */}
-              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom: isLogin ? '1.5rem' : '1.2rem' }}>
+              {/* Top row – hidden on success screen */}
+              {!regSuccess && (
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom: isLogin ? '0.9rem' : '0.8rem' }}>
                 <div>
                   <div style={{ fontSize:'0.78rem', color:'#8899aa', fontWeight:500, marginBottom:3 }}>
-                    Welcome to <span style={{ color: NAVY, fontWeight:800 }}>FYRC</span>
+                    Welcome to <span style={{ color: NAVY, fontWeight:800 }}>KMC</span>
                   </div>
                   <div style={{ fontSize:'2rem', fontWeight:800, color:'#0f172a', lineHeight:1.1, letterSpacing:'-0.02em' }}>
                     {isLogin ? 'Sign in' : 'Sign up'}
@@ -258,27 +280,13 @@ export default function AuthPage() {
                   </button>
                 </div>
               </div>
+              )}
 
               {/* ── LOGIN ── */}
               {isLogin && (
                 <>
-                  <div style={{ display:'flex', gap:'0.6rem', marginBottom:'1.25rem' }}>
-                    <button type="button" className="gbtn" style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', gap:9, padding:'0.65rem 1rem', background:'#f8fafc', border:'1.5px solid #e2e8f0', borderRadius:11, cursor:'pointer', fontSize:'0.8rem', fontWeight:600, color:'#374151', fontFamily:'inherit', transition:'all 0.18s' }}>
-                      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="G" style={{ width:17, height:17 }}/>
-                      Sign in with Google
-                    </button>
-                    <button type="button" className="ibtn" style={{ width:44, height:44, display:'flex', alignItems:'center', justifyContent:'center', background:'#f8fafc', border:'1.5px solid #e2e8f0', borderRadius:11, cursor:'pointer', flexShrink:0, transition:'all 0.18s' }}>
-                      <img src="https://upload.wikimedia.org/wikipedia/commons/b/b8/2021_Facebook_icon.svg" alt="FB" style={{ width:20, height:20 }}/>
-                    </button>
-                    <button type="button" className="ibtn" style={{ width:44, height:44, display:'flex', alignItems:'center', justifyContent:'center', background:'#f8fafc', border:'1.5px solid #e2e8f0', borderRadius:11, cursor:'pointer', flexShrink:0, transition:'all 0.18s' }}>
-                      <Apple size={19} color="#000" fill="#000"/>
-                    </button>
-                  </div>
-                  <div style={{ display:'flex', alignItems:'center', gap:'0.6rem', marginBottom:'1.1rem' }}>
-                    <div style={{ flex:1, height:1, background:'#e2e8f0' }}/><span style={{ fontSize:'0.68rem', color:'#b0bcc8', fontWeight:600, textTransform:'uppercase', letterSpacing:'0.06em' }}>or continue with email</span><div style={{ flex:1, height:1, background:'#e2e8f0' }}/>
-                  </div>
                   {error && <div style={{ padding:'0.6rem 0.85rem', background:'#fef2f2', border:'1px solid #fecaca', borderRadius:9, fontSize:'0.78rem', color:'#b91c1c', fontWeight:600, marginBottom:'1rem' }}>{error}</div>}
-                  <form onSubmit={handleLogin} style={{ display:'flex', flexDirection:'column', gap:'1rem', flex:1 }}>
+                  <form onSubmit={handleLogin} style={{ display:'flex', flexDirection:'column', gap:'0.55rem' }}>
                     <Input label="Username or email address" type="email" placeholder="Username or email address" value={email} onChange={e=>setEmail(e.target.value)}/>
                     <Input label="Enter your Password" type="password" placeholder="Password" value={password} onChange={e=>setPassword(e.target.value)}/>
                     <div style={{ textAlign:'right', marginTop:-8 }}>
@@ -292,8 +300,28 @@ export default function AuthPage() {
                 </>
               )}
 
-              {/* ── REGISTER ── */}
-              {!isLogin && (
+              {/* ── REGISTER SUCCESS ── */}
+              {!isLogin && regSuccess && (
+                <div style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', textAlign:'center', padding:'1rem 0' }}>
+                  <div style={{ width:64, height:64, borderRadius:'50%', background:'#f0fdf4', border:`2px solid ${GREEN}`, display:'flex', alignItems:'center', justifyContent:'center', marginBottom:'1.25rem' }}>
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={GREEN} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  </div>
+                  <div style={{ fontSize:'1.3rem', fontWeight:800, color: NAVY, marginBottom:8 }}>Registration Submitted!</div>
+                  <div style={{ fontSize:'0.85rem', color:'#6b7a8d', lineHeight:1.7, maxWidth:310, marginBottom:'1.5rem' }}>
+                    Your application is under review. You'll receive an email once your account is approved by the department admin.
+                  </div>
+                  <div style={{ background:'#f0fdf4', border:`1px solid ${GREEN}20`, borderRadius:12, padding:'0.85rem 1.2rem', fontSize:'0.8rem', color:'#15803d', fontWeight:600, marginBottom:'1.5rem', width:'100%', textAlign:'left' }}>
+                    📋 <strong>What's next?</strong><br/>
+                    <span style={{ fontWeight:400 }}>The admin will review your credentials and approve your account. This usually takes 1–2 business days.</span>
+                  </div>
+                  <button onClick={() => { switchMode() }} style={{ width:'100%', padding:'0.85rem', background: GREEN, color:'#fff', border:'none', borderRadius:12, cursor:'pointer', fontSize:'0.9rem', fontWeight:700, fontFamily:'inherit' }}>
+                    Back to Sign In
+                  </button>
+                </div>
+              )}
+
+              {/* ── REGISTER FORM ── */}
+              {!isLogin && !regSuccess && (
                 <>
                   <StepBar step={regStep}/>
                   <div style={{ marginBottom:'1.2rem' }}>
