@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { getProjects } from '../api'
-import { Search, Filter, Clock, Briefcase, ChevronRight, CheckCircle2 } from 'lucide-react'
+import { Search, Filter, Clock, Briefcase, ChevronRight, CheckCircle2, X, SlidersHorizontal } from 'lucide-react'
 import { useUser } from '../context/UserContext'
 import DashboardLayout from '../components/DashboardLayout'
 import ProjectDetailModal from '../components/ProjectDetailModal'
@@ -22,6 +22,9 @@ export default function ResearchPage({ forceView }) {
   const [irbFilter, setIrbFilter] = useState(false)
   const [dateFilter, setDateFilter] = useState('Any')
 
+  const [filterOpen, setFilterOpen] = useState(false)
+  const filterRef = useRef(null)
+
   const [selectedProject, setSelectedProject] = useState(null)
 
   useEffect(() => {
@@ -38,6 +41,17 @@ export default function ResearchPage({ forceView }) {
         console.error(err)
         setLoading(false) 
       })
+  }, [])
+
+  // Close popup on outside click
+  useEffect(() => {
+    const handler = (e) => {
+      if (filterRef.current && !filterRef.current.contains(e.target)) {
+        setFilterOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
   }, [])
 
   // Filtering Logic
@@ -84,7 +98,21 @@ export default function ResearchPage({ forceView }) {
     setSearchTerm('')
   }
 
+  // Count active filters for badge
+  const activeFilterCount = [
+    statusFilter !== 'All',
+    domainFilter.length > 0,
+    typeFilter !== 'All',
+    timeFilter !== 'Any',
+    perksFilter.length > 0,
+    remoteFilter,
+    irbFilter,
+    dateFilter !== 'Any',
+  ].filter(Boolean).length
+
   const isGuest = role === 'public'
+
+  const GREEN = '#2D7A3A'
 
   const content = (
     <>
@@ -99,176 +127,232 @@ export default function ResearchPage({ forceView }) {
             {view === 'proj' ? `${filteredProjects.length} Projects` : '142 Researchers'}
           </div>
         </div>
-        <div>
-          <button className="pc-premium-btn flex items-center gap-2 border-slate-200 text-slate-500 hover:border-[var(--dash-green)]" onClick={resetFilters}>
-            <Filter size={14} /> Reset Filters
+
+        {/* Filter Button */}
+        <div style={{ position: 'relative' }} ref={filterRef}>
+          <button
+            onClick={() => setFilterOpen(o => !o)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '8px',
+              padding: '9px 18px', borderRadius: '10px', cursor: 'pointer',
+              border: filterOpen ? `1.5px solid ${GREEN}` : '1.5px solid #d1d5db',
+              background: filterOpen ? '#edf7ef' : '#fff',
+              color: filterOpen ? GREEN : '#374151',
+              fontWeight: '600', fontSize: '13.5px',
+              fontFamily: "'DM Sans', sans-serif",
+              transition: 'all 0.18s',
+              boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
+            }}
+          >
+            <SlidersHorizontal size={15} />
+            Filters
+            {activeFilterCount > 0 && (
+              <span style={{
+                background: GREEN, color: '#fff',
+                borderRadius: '50%', width: '18px', height: '18px',
+                fontSize: '11px', fontWeight: '700',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                marginLeft: '2px',
+              }}>
+                {activeFilterCount}
+              </span>
+            )}
           </button>
+
+          {/* Filter Popup Panel */}
+          {filterOpen && (
+            <div style={{
+              position: 'absolute', top: 'calc(100% + 10px)', right: 0,
+              width: '360px', background: '#fff',
+              borderRadius: '16px', border: '1px solid #e5e7eb',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.13)',
+              zIndex: 200, padding: '0',
+              fontFamily: "'DM Sans', sans-serif",
+            }}>
+              {/* Panel header */}
+              <div style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                padding: '16px 20px 14px',
+                borderBottom: '1px solid #f0f0f0',
+              }}>
+                <span style={{ fontWeight: '700', fontSize: '14px', color: '#111' }}>Filters</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  {activeFilterCount > 0 && (
+                    <button
+                      onClick={resetFilters}
+                      style={{
+                        fontSize: '12.5px', color: GREEN, fontWeight: '600',
+                        background: '#edf7ef', border: 'none', borderRadius: '7px',
+                        padding: '4px 12px', cursor: 'pointer',
+                      }}
+                    >
+                      Clear all
+                    </button>
+                  )}
+                  <button
+                    onClick={() => setFilterOpen(false)}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', padding: '2px' }}
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Scrollable filter body */}
+              <div style={{ maxHeight: '72vh', overflowY: 'auto', padding: '8px 0 12px' }}>
+
+                {/* Status */}
+                <FilterSection title="Status">
+                  {['All', 'Ongoing', 'Upcoming', 'Closing Soon'].map(opt => (
+                    <label key={opt} className="filter-option">
+                      <input type="radio" name="status" checked={statusFilter === opt} onChange={() => setStatusFilter(opt)} />
+                      <span className="filter-label">{opt === 'All' ? 'Open to All' : opt}</span>
+                    </label>
+                  ))}
+                </FilterSection>
+
+                <div className="filter-divider" />
+
+                {/* Domain */}
+                <FilterSection title="Domain">
+                  {['Medical Imaging', 'NLP in Healthcare', 'Predictive Analytics', 'Federated Learning', 'Genomics'].map(opt => (
+                    <label key={opt} className="filter-option">
+                      <input
+                        type="checkbox"
+                        checked={domainFilter.includes(opt)}
+                        onChange={(e) => {
+                          if (e.target.checked) setDomainFilter([...domainFilter, opt])
+                          else setDomainFilter(domainFilter.filter(d => d !== opt))
+                        }}
+                      />
+                      <span className="filter-label">{opt}</span>
+                    </label>
+                  ))}
+                </FilterSection>
+
+                <div className="filter-divider" />
+
+                {/* Type */}
+                <FilterSection title="Type">
+                  {['All', 'Project', 'Paper'].map(opt => (
+                    <label key={opt} className="filter-option">
+                      <input type="radio" name="type" checked={typeFilter === opt} onChange={() => setTypeFilter(opt)} />
+                      <span className="filter-label">
+                        {opt === 'All' ? 'All types' : opt === 'Project' ? 'Research Project' : 'Paper / Publication'}
+                      </span>
+                    </label>
+                  ))}
+                </FilterSection>
+
+                <div className="filter-divider" />
+
+                {/* Perks */}
+                <FilterSection title="Collaboration Perks">
+                  {['Co-authorship', 'Letter of Recommendation', 'Clinical data access', 'Stipend / honorarium'].map(opt => (
+                    <label key={opt} className="filter-option">
+                      <input
+                        type="checkbox"
+                        checked={perksFilter.includes(opt)}
+                        onChange={(e) => {
+                          if (e.target.checked) setPerksFilter([...perksFilter, opt])
+                          else setPerksFilter(perksFilter.filter(p => p !== opt))
+                        }}
+                      />
+                      <span className="filter-label">{opt}</span>
+                    </label>
+                  ))}
+                </FilterSection>
+
+                <div className="filter-divider" />
+
+                {/* Time */}
+                <FilterSection title="Time Commitment">
+                  {['Any', 'Up to 6 hrs/week', '6-10 hrs/week', '10+ hrs/week'].map(opt => (
+                    <label key={opt} className="filter-option">
+                      <input type="radio" name="time" checked={timeFilter === opt} onChange={() => setTimeFilter(opt)} />
+                      <span className="filter-label">{opt}</span>
+                    </label>
+                  ))}
+                </FilterSection>
+
+                <div className="filter-divider" />
+
+                {/* Remote + IRB */}
+                <FilterSection title="Other">
+                  <label className="filter-option">
+                    <input type="checkbox" checked={remoteFilter} onChange={(e) => setRemoteFilter(e.target.checked)} />
+                    <span className="filter-label">Remote collaboration possible</span>
+                  </label>
+                  <label className="filter-option">
+                    <input type="checkbox" checked={irbFilter} onChange={(e) => setIrbFilter(e.target.checked)} />
+                    <span className="filter-label">IRB approved only</span>
+                  </label>
+                </FilterSection>
+
+                <div className="filter-divider" />
+
+                {/* Posted within */}
+                <FilterSection title="Posted Within">
+                  {['Any time', 'Last 7 days', 'Last 30 days'].map(opt => (
+                    <label key={opt} className="filter-option">
+                      <input type="radio" name="posted" checked={dateFilter === opt} onChange={() => setDateFilter(opt)} />
+                      <span className="filter-label">{opt}</span>
+                    </label>
+                  ))}
+                </FilterSection>
+              </div>
+
+              {/* Apply button */}
+              <div style={{ padding: '12px 20px', borderTop: '1px solid #f0f0f0' }}>
+                <button
+                  onClick={() => setFilterOpen(false)}
+                  style={{
+                    width: '100%', padding: '10px', borderRadius: '10px',
+                    background: GREEN, color: '#fff', border: 'none',
+                    fontWeight: '700', fontSize: '13.5px', cursor: 'pointer',
+                    fontFamily: "'DM Sans', sans-serif",
+                  }}
+                >
+                  Show {filteredProjects.length} Results
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
-      <div className="discovery-layout">
-        {/* SIDEBAR FILTERS */}
-        <aside className="filter-sidebar">
-          <div className="filter-section">
-            <span className="filter-title">Status</span>
-            <div className="filter-options">
-              {['All', 'Ongoing', 'Upcoming', 'Closing Soon'].map(opt => (
-                <label key={opt} className="filter-option">
-                  <input 
-                    type="radio" 
-                    name="status" 
-                    checked={statusFilter === opt}
-                    onChange={() => setStatusFilter(opt)}
-                  />
-                  <span className="filter-label">{opt === 'All' ? 'Open to All' : opt}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-
-          <div className="filter-divider" />
-
-          <div className="filter-section">
-            <span className="filter-title">Domain</span>
-            <div className="filter-options">
-              {['Medical Imaging', 'NLP in Healthcare', 'Predictive Analytics', 'Federated Learning', 'Genomics'].map(opt => (
-                <label key={opt} className="filter-option">
-                  <input 
-                    type="checkbox" 
-                    checked={domainFilter.includes(opt)}
-                    onChange={(e) => {
-                      if (e.target.checked) setDomainFilter([...domainFilter, opt])
-                      else setDomainFilter(domainFilter.filter(d => d !== opt))
-                    }}
-                  />
-                  <span className="filter-label">{opt}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-
-          <div className="filter-divider" />
-
-          <div className="filter-section">
-            <span className="filter-title">Type</span>
-            <div className="filter-options">
-              {['All', 'Project', 'Paper'].map(opt => (
-                <label key={opt} className="filter-option">
-                  <input 
-                    type="radio" 
-                    name="type" 
-                    checked={typeFilter === opt}
-                    onChange={() => setTypeFilter(opt)}
-                  />
-                  <span className="filter-label">
-                    {opt === 'All' ? 'All types' : opt === 'Project' ? 'Research Project' : 'Paper / Publication'}
-                  </span>
-                </label>
-              ))}
-            </div>
-          </div>
-
-          <div className="filter-divider" />
-
-          <div className="filter-section">
-            <span className="filter-title">Collaboration perks</span>
-            <div className="filter-options">
-              {['Co-authorship', 'Letter of Recommendation', 'Clinical data access', 'Stipend / honorarium'].map(opt => (
-                <label key={opt} className="filter-option">
-                  <input 
-                    type="checkbox" 
-                    checked={perksFilter.includes(opt)}
-                    onChange={(e) => {
-                      if (e.target.checked) setPerksFilter([...perksFilter, opt])
-                      else setPerksFilter(perksFilter.filter(p => p !== opt))
-                    }}
-                  />
-                  <span className="filter-label">{opt}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-
-          <div className="filter-divider" />
-
-          <div className="filter-section">
-            <span className="filter-title">Time commitment</span>
-            <div className="filter-options">
-              {['Any', 'Up to 6 hrs/week', '6-10 hrs/week', '10+ hrs/week'].map(opt => (
-                <label key={opt} className="filter-option">
-                  <input 
-                    type="radio" 
-                    name="time" 
-                    checked={timeFilter === opt}
-                    onChange={() => setTimeFilter(opt)}
-                  />
-                  <span className="filter-label">{opt}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-
-          <div className="filter-divider" />
-
-          <div className="filter-section">
-            <span className="filter-title">IRB Approved</span>
-            <label className="filter-option">
-              <input 
-                type="checkbox" 
-                checked={irbFilter}
-                onChange={(e) => setIrbFilter(e.target.checked)}
-              />
-              <span className="filter-label">Yes — ethics approved only</span>
-            </label>
-          </div>
-
-          <div className="filter-section">
-            <span className="filter-title">Remote friendly</span>
-            <label className="filter-option">
-              <input 
-                type="checkbox" 
-                checked={remoteFilter}
-                onChange={(e) => setRemoteFilter(e.target.checked)}
-              />
-              <span className="filter-label">Remote collaboration possible</span>
-            </label>
-          </div>
-
-          <div className="filter-divider" />
-
-          <div className="filter-section">
-            <span className="filter-title">Posted within</span>
-            <div className="filter-options">
-              {['Any time', 'Last 7 days', 'Last 30 days'].map(opt => (
-                <label key={opt} className="filter-option">
-                  <input 
-                    type="radio" 
-                    name="posted" 
-                    checked={dateFilter === opt}
-                    onChange={() => setDateFilter(opt)}
-                  />
-                  <span className="filter-label">{opt}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-        </aside>
-
-        {/* MAIN CONTENT */}
-        <div className="discovery-content bg-white/40 rounded-[32px] p-2">
-          <div className="proj-grid">
-            {filteredProjects.map(project => (
-              <PremiumProjectCard key={project.id} project={project} onOpen={() => setSelectedProject(project)} />
-            ))}
-            {filteredProjects.length === 0 && (
-              <div className="col-span-full py-20 text-center text-gray-400 bg-white rounded-3xl border border-dashed border-gray-200">
-                <Search className="mx-auto mb-4 opacity-10" size={48} />
-                <h3 className="text-lg font-bold text-gray-600">No matches found</h3>
-                <p className="text-sm">Try broadening your search or clearing all filters.</p>
-              </div>
-            )}
-          </div>
+      {/* Active filter chips */}
+      {activeFilterCount > 0 && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '16px', marginTop: '-8px' }}>
+          {statusFilter !== 'All' && <FilterChip label={`Status: ${statusFilter}`} onRemove={() => setStatusFilter('All')} />}
+          {domainFilter.map(d => <FilterChip key={d} label={d} onRemove={() => setDomainFilter(domainFilter.filter(x => x !== d))} />)}
+          {typeFilter !== 'All' && <FilterChip label={`Type: ${typeFilter}`} onRemove={() => setTypeFilter('All')} />}
+          {timeFilter !== 'Any' && <FilterChip label={timeFilter} onRemove={() => setTimeFilter('Any')} />}
+          {perksFilter.map(p => <FilterChip key={p} label={p} onRemove={() => setPerksFilter(perksFilter.filter(x => x !== p))} />)}
+          {remoteFilter && <FilterChip label="Remote" onRemove={() => setRemoteFilter(false)} />}
+          {irbFilter && <FilterChip label="IRB Approved" onRemove={() => setIrbFilter(false)} />}
+          {dateFilter !== 'Any' && <FilterChip label={dateFilter} onRemove={() => setDateFilter('Any')} />}
+          <button
+            onClick={resetFilters}
+            style={{ fontSize: '12px', color: '#6b7280', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', padding: '2px 6px' }}
+          >
+            Clear all
+          </button>
         </div>
+      )}
+
+      {/* MAIN CONTENT — full width, no sidebar */}
+      <div className="proj-grid">
+        {filteredProjects.map(project => (
+          <PremiumProjectCard key={project.id} project={project} onOpen={() => setSelectedProject(project)} />
+        ))}
+        {filteredProjects.length === 0 && (
+          <div className="col-span-full py-20 text-center text-gray-400 bg-white rounded-3xl border border-dashed border-gray-200">
+            <Search className="mx-auto mb-4 opacity-10" size={48} />
+            <h3 className="text-lg font-bold text-gray-600">No matches found</h3>
+            <p className="text-sm">Try broadening your search or clearing all filters.</p>
+          </div>
+        )}
       </div>
 
       {selectedProject && (
@@ -291,6 +375,35 @@ export default function ResearchPage({ forceView }) {
         {content}
       </div>
     </div>
+  )
+}
+
+// ── Helper: collapsible filter section inside popup ──
+function FilterSection({ title, children }) {
+  return (
+    <div style={{ padding: '12px 20px 4px' }}>
+      <div style={{ fontSize: '11.5px', fontWeight: '700', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '10px' }}>
+        {title}
+      </div>
+      <div className="filter-options">{children}</div>
+    </div>
+  )
+}
+
+// ── Helper: active filter chip ──
+function FilterChip({ label, onRemove }) {
+  return (
+    <span style={{
+      display: 'inline-flex', alignItems: 'center', gap: '5px',
+      background: '#edf7ef', color: '#2D7A3A',
+      border: '1px solid #c6dec6', borderRadius: '20px',
+      padding: '3px 10px 3px 12px', fontSize: '12px', fontWeight: '600',
+    }}>
+      {label}
+      <button onClick={onRemove} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#2D7A3A', padding: 0, display: 'flex' }}>
+        <X size={12} />
+      </button>
+    </span>
   )
 }
 
