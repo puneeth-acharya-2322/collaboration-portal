@@ -22,6 +22,7 @@ function ScrollToTop() {
 }
 
 import ProjectDetailPage from './pages/ProjectDetailPage.jsx'
+import CollaboratorDetailPage from './pages/CollaboratorDetailPage.jsx'
 
 export default function App() {
   const location = useLocation()
@@ -35,6 +36,7 @@ export default function App() {
     || location.pathname.startsWith('/dashboard')
     || location.pathname.startsWith('/admin')
     || location.pathname.startsWith('/project')
+    || location.pathname.startsWith('/collaborator')
   // Sidebar is visible only when on discovery routes AND user is public (guest)
   const hasSidebar = discoveryRoutes.includes(location.pathname) && role === 'public'
 
@@ -54,6 +56,7 @@ export default function App() {
           <Route path="/preferences" element={<CollaboratePage forceTab="prefs" />} />
 
           <Route path="/project/:id" element={<ProjectDetailPage />} />
+          <Route path="/collaborator/:id" element={<CollaboratorDetailPage />} />
 
           <Route path="/login" element={<AuthPage />} />
           <Route path="/register" element={<AuthPage />} />

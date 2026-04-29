@@ -4,65 +4,7 @@ import { getProjects } from '../api'
 import { Search, Filter, Clock, Briefcase, ChevronRight, CheckCircle2, X, SlidersHorizontal } from 'lucide-react'
 import { useUser } from '../context/UserContext'
 import DashboardLayout from '../components/DashboardLayout'
-
-const dummySeekers = [
-  {
-    id: 's1',
-    name: 'Dr. Anitha Rao',
-    role: 'Assistant Professor · AI in Healthcare, KMC',
-    skills: ['Medical Imaging', 'NLP in Healthcare', 'PyTorch', 'DICOM', 'Python'],
-    hIndex: 8,
-    publications: 24,
-    mode: 'Hybrid',
-    urgency: '8/10',
-    seeking: 'Ophthalmologist for clinical validation · Biostatistician for power analysis',
-    status: 'Available',
-    initials: 'AR',
-    color: '#1B3A5C'
-  },
-  {
-    id: 's2',
-    name: 'Dr. Priya Ramesh',
-    role: 'Associate Professor · Ophthalmology, KMC',
-    skills: ['Medical Imaging', 'Clinical Decision Support', 'DICOM', 'Statistical analysis', 'R'],
-    hIndex: 11,
-    publications: 31,
-    mode: 'On-site',
-    urgency: '6/10',
-    seeking: 'CNN specialist for retinal imaging · Data engineer for DICOM pipeline',
-    status: 'Available',
-    initials: 'PR',
-    color: '#1A7A6E'
-  },
-  {
-    id: 's3',
-    name: 'Dr. Suresh Kumar',
-    role: 'Professor · Biostatistics, MAHE',
-    skills: ['Predictive Analytics', 'AI Ethics & Governance', 'R', 'SPSS', 'Python'],
-    hIndex: 14,
-    publications: 47,
-    mode: 'Remote',
-    urgency: '4/10',
-    seeking: 'Machine learning engineer · Frontend developer for dashboard',
-    status: 'Unavailable',
-    initials: 'SK',
-    color: '#D4820A'
-  },
-  {
-    id: 's4',
-    name: 'Nikhil Varma',
-    role: 'PhD Student · Computer Science, MIT Manipal',
-    skills: ['Federated Learning', 'Medical Imaging', 'PySyft', 'Docker', 'PyTorch'],
-    hIndex: 3,
-    publications: 6,
-    mode: 'Hybrid',
-    urgency: '9/10',
-    seeking: 'Clinician co-author for oncology project · Radiologist for annotation review',
-    status: 'Available',
-    initials: 'NV',
-    color: '#7C3AED'
-  }
-];
+import { dummySeekers } from '../data/mockSeekers'
 
 export default function ResearchPage({ forceView }) {
   const navigate = useNavigate()
@@ -721,7 +663,7 @@ function PremiumSeekerCard({ seeker }) {
   const navigate = useNavigate();
   
   return (
-    <div className="proj-card-premium group hover-lift" onClick={() => navigate('/login')}>
+    <div className="proj-card-premium group hover-lift" onClick={() => navigate(`/collaborator/${seeker.id}`)}>
       <div className="pc-premium-header">
         <div className="pc-premium-pi">
           <div className="pc-premium-av">{seeker.initials}</div>
@@ -753,7 +695,7 @@ function PremiumSeekerCard({ seeker }) {
         <button 
           onClick={(e) => { 
             e.stopPropagation(); 
-            navigate('/login'); 
+            navigate(`/collaborator/${seeker.id}`); 
           }} 
           className="pc-premium-btn"
         >
