@@ -21,6 +21,8 @@ function ScrollToTop() {
   return null
 }
 
+import ProjectDetailPage from './pages/ProjectDetailPage.jsx'
+
 export default function App() {
   const location = useLocation()
   const { role } = useUser()
@@ -32,6 +34,7 @@ export default function App() {
     || authRoutes.includes(location.pathname)
     || location.pathname.startsWith('/dashboard')
     || location.pathname.startsWith('/admin')
+    || location.pathname.startsWith('/project')
   // Sidebar is visible only when on discovery routes AND user is public (guest)
   const hasSidebar = discoveryRoutes.includes(location.pathname) && role === 'public'
 
@@ -49,6 +52,8 @@ export default function App() {
           <Route path="/matches" element={<CollaboratePage forceTab="matches" />} />
           <Route path="/profile" element={<CollaboratePage forceTab="prefs" />} />
           <Route path="/preferences" element={<CollaboratePage forceTab="prefs" />} />
+
+          <Route path="/project/:id" element={<ProjectDetailPage />} />
 
           <Route path="/login" element={<AuthPage />} />
           <Route path="/register" element={<AuthPage />} />
@@ -187,37 +192,7 @@ function Footer({ hasSidebar }) {
           </div>
         </div>
 
-        {/* ── Newsletter row ── */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '12px',
-          paddingTop: '24px',
-          borderTop: '1px solid #E0E0E0',
-        }}>
-          <span style={{ fontSize: '14px', color: '#333', whiteSpace: 'nowrap', fontWeight: '500' }}>Newsletter Signup</span>
-          <input
-            type="email"
-            placeholder="Email id"
-            style={{
-              flex: 1, maxWidth: '320px', padding: '8px 16px',
-              border: '0.8px solid #DDDDDD', borderRadius: '50px',
-              fontSize: '13px', outline: 'none', background: '#fff',
-              fontFamily: "'Montserrat', 'DM Sans', sans-serif",
-            }}
-          />
-          <button style={{
-            background: GREEN, color: '#fff',
-            border: 'none', borderRadius: '50px',
-            padding: '8px 24px', fontSize: '12px',
-            fontWeight: '700', cursor: 'pointer',
-            fontFamily: "'Montserrat', 'DM Sans', sans-serif",
-            letterSpacing: '0.5px',
-            textTransform: 'uppercase',
-          }}>
-            Subscribe
-          </button>
-        </div>
+
       </div>
 
       {/* ── Copyright bar ── */}

@@ -35,9 +35,6 @@ export default function DashboardLayout({ children, searchValue, onSearchChange 
           <Link to="/collaborators" className={`dash-menu-item ${location.pathname === '/collaborators' ? 'active' : ''}`}>
             <Briefcase size={18} /> Find a Collaborator
           </Link>
-          <Link to="/preferences" className={`dash-menu-item ${location.pathname === '/preferences' ? 'active' : ''}`}>
-            <Layout size={18} /> My Preferences
-          </Link>
         </nav>
       </aside>
 
@@ -56,8 +53,8 @@ export default function DashboardLayout({ children, searchValue, onSearchChange 
 
           <div className="dash-actions">
             {role === 'public' ? (
-              <Link to="/login" className="pc-premium-btn flex items-center gap-2 border-slate-200 text-slate-500 hover:border-[var(--dash-green)] hover:text-[var(--dash-green)]">
-                Login / Register
+              <Link to="/login" className="btn-login-premium">
+                LOGIN / REGISTER
               </Link>
             ) : (
               <>

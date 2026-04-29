@@ -26,7 +26,7 @@ function filterProject(project, role) {
   if (project.visibility === 'private' && role !== 'user') {
     // Mask private fields for public users
     const masked = { ...project };
-    const allowed = project.visibleFields || ['title', 'pi', 'domain', 'shortDescription'];
+    const allowed = project.visibleFields || ['title', 'pi', 'domain', 'shortDescription', 'hoursPerWeek', 'type', 'skills', 'perks', 'clinicalProblem', 'techStack', 'collaboratorRole'];
     Object.keys(masked).forEach(key => {
       if (!allowed.includes(key) && !['id', 'visibility', 'status', 'approvalStatus'].includes(key)) {
         delete masked[key];

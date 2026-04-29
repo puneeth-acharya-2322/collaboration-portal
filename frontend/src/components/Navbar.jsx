@@ -49,7 +49,7 @@ export default function Navbar() {
         
         <div className="user-area-wrap">
           {role === 'public' && (
-            <Link to="/admin/login" className="dash-filter-btn" style={{ textDecoration: 'none' }}>
+            <Link to="/admin/login" className="btn-login-premium">
               LOGIN / REGISTER
             </Link>
           )}

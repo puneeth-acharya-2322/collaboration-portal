@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { getProjects } from '../api'
 import { Search, Filter, Clock, Briefcase, ChevronRight, CheckCircle2, X, SlidersHorizontal } from 'lucide-react'
 import { useUser } from '../context/UserContext'
 import DashboardLayout from '../components/DashboardLayout'
-import ProjectDetailModal from '../components/ProjectDetailModal'
 
 export default function ResearchPage({ forceView }) {
+  const navigate = useNavigate()
   const { role } = useUser()
   const [view, setView] = useState(forceView || 'proj') 
   const [projects, setProjects] = useState([])
@@ -25,7 +26,6 @@ export default function ResearchPage({ forceView }) {
   const [filterOpen, setFilterOpen] = useState(false)
   const filterRef = useRef(null)
 
-  const [selectedProject, setSelectedProject] = useState(null)
 
   useEffect(() => {
     if (forceView) setView(forceView)
@@ -344,7 +344,7 @@ export default function ResearchPage({ forceView }) {
       {/* MAIN CONTENT — full width, no sidebar */}
       <div className="proj-grid">
         {filteredProjects.map(project => (
-          <PremiumProjectCard key={project.id} project={project} onOpen={() => setSelectedProject(project)} />
+          <PremiumProjectCard key={project.id} project={project} />
         ))}
         {filteredProjects.length === 0 && (
           <div className="col-span-full py-20 text-center text-gray-400 bg-white rounded-3xl border border-dashed border-gray-200">
@@ -355,9 +355,6 @@ export default function ResearchPage({ forceView }) {
         )}
       </div>
 
-      {selectedProject && (
-        <ProjectDetailModal project={selectedProject} onClose={() => setSelectedProject(null)} />
-      )}
     </>
   )
 
@@ -407,12 +404,13 @@ function FilterChip({ label, onRemove }) {
   )
 }
 
-function PremiumProjectCard({ project, onOpen }) {
+function PremiumProjectCard({ project }) {
+  const navigate = useNavigate();
   const piName = project.pi?.name || project.pi || 'Dr. Principal Investigator';
   const initials = piName.split(' ').map(n => n[0]).join('')
   
   return (
-    <div className="proj-card-premium group hover-lift" onClick={onOpen}>
+    <div className="proj-card-premium group hover-lift" onClick={() => navigate(`/project/${project.id}`)}>
       <div className="pc-premium-header">
         <div className="pc-premium-pi">
           <div className="pc-premium-av">{initials}</div>
@@ -438,8 +436,14 @@ function PremiumProjectCard({ project, onOpen }) {
       </div>
 
       <div className="pc-premium-footer">
-        <button onClick={(e) => { e.stopPropagation(); onOpen(); }} className="pc-premium-btn">
-          View Detail
+        <button 
+          onClick={(e) => { 
+            e.stopPropagation(); 
+            navigate(`/project/${project.id}`); 
+          }} 
+          className="pc-premium-btn"
+        >
+          VIEW DETAIL
         </button>
       </div>
     </div>
