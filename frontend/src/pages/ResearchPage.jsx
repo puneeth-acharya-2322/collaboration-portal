@@ -5,6 +5,65 @@ import { Search, Filter, Clock, Briefcase, ChevronRight, CheckCircle2, X, Slider
 import { useUser } from '../context/UserContext'
 import DashboardLayout from '../components/DashboardLayout'
 
+const dummySeekers = [
+  {
+    id: 's1',
+    name: 'Dr. Anitha Rao',
+    role: 'Assistant Professor · AI in Healthcare, KMC',
+    skills: ['Medical Imaging', 'NLP in Healthcare', 'PyTorch', 'DICOM', 'Python'],
+    hIndex: 8,
+    publications: 24,
+    mode: 'Hybrid',
+    urgency: '8/10',
+    seeking: 'Ophthalmologist for clinical validation · Biostatistician for power analysis',
+    status: 'Available',
+    initials: 'AR',
+    color: '#1B3A5C'
+  },
+  {
+    id: 's2',
+    name: 'Dr. Priya Ramesh',
+    role: 'Associate Professor · Ophthalmology, KMC',
+    skills: ['Medical Imaging', 'Clinical Decision Support', 'DICOM', 'Statistical analysis', 'R'],
+    hIndex: 11,
+    publications: 31,
+    mode: 'On-site',
+    urgency: '6/10',
+    seeking: 'CNN specialist for retinal imaging · Data engineer for DICOM pipeline',
+    status: 'Available',
+    initials: 'PR',
+    color: '#1A7A6E'
+  },
+  {
+    id: 's3',
+    name: 'Dr. Suresh Kumar',
+    role: 'Professor · Biostatistics, MAHE',
+    skills: ['Predictive Analytics', 'AI Ethics & Governance', 'R', 'SPSS', 'Python'],
+    hIndex: 14,
+    publications: 47,
+    mode: 'Remote',
+    urgency: '4/10',
+    seeking: 'Machine learning engineer · Frontend developer for dashboard',
+    status: 'Unavailable',
+    initials: 'SK',
+    color: '#D4820A'
+  },
+  {
+    id: 's4',
+    name: 'Nikhil Varma',
+    role: 'PhD Student · Computer Science, MIT Manipal',
+    skills: ['Federated Learning', 'Medical Imaging', 'PySyft', 'Docker', 'PyTorch'],
+    hIndex: 3,
+    publications: 6,
+    mode: 'Hybrid',
+    urgency: '9/10',
+    seeking: 'Clinician co-author for oncology project · Radiologist for annotation review',
+    status: 'Available',
+    initials: 'NV',
+    color: '#7C3AED'
+  }
+];
+
 export default function ResearchPage({ forceView }) {
   const navigate = useNavigate()
   const { role } = useUser()
@@ -23,12 +82,23 @@ export default function ResearchPage({ forceView }) {
   const [irbFilter, setIrbFilter] = useState(false)
   const [dateFilter, setDateFilter] = useState('Any')
 
+  // Seeker Filtering State
+  const [seekerDesignation, setSeekerDesignation] = useState([])
+  const [seekerDept, setSeekerDept] = useState([])
+  const [seekerDomain, setSeekerDomain] = useState([])
+  const [seekerHIndex, setSeekerHIndex] = useState(0)
+  const [seekerPubs, setSeekerPubs] = useState(0)
+  const [seekerAvail, setSeekerAvail] = useState('All')
+  const [seekerMode, setSeekerMode] = useState([])
+  const [seekerUrgency, setSeekerUrgency] = useState('Any')
+  const [seekerInst, setSeekerInst] = useState([])
+
   const [filterOpen, setFilterOpen] = useState(false)
   const filterRef = useRef(null)
 
 
   useEffect(() => {
-    if (forceView) setView(forceView)
+    setView(forceView || 'proj')
   }, [forceView])
 
   useEffect(() => {
@@ -86,6 +156,49 @@ export default function ResearchPage({ forceView }) {
     return matchesSearch && matchesStatus && matchesDomain && matchesTime && matchesType && matchesPerks && matchesRemote && matchesDate
   })
 
+  const filteredSeekers = dummySeekers.filter(seeker => {
+    const matchesSearch = !searchTerm ||
+      seeker.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      seeker.role.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      seeker.seeking.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesDesignation = seekerDesignation.length === 0 || 
+      seekerDesignation.some(d => seeker.role.includes(d));
+
+    const matchesDept = seekerDept.length === 0 || 
+      seekerDept.some(d => seeker.role.includes(d));
+
+    const matchesDomain = seekerDomain.length === 0 || 
+      seekerDomain.some(d => seeker.skills.includes(d));
+
+    const matchesHIndex = seeker.hIndex >= seekerHIndex;
+    const matchesPubs = seeker.publications >= seekerPubs;
+
+    const matchesAvail = seekerAvail === 'All' || 
+      (seekerAvail === 'Available now' && seeker.status === 'Available');
+
+    const matchesMode = seekerMode.length === 0 || 
+      seekerMode.some(m => {
+        if (m === 'On-site (Manipal)') return seeker.mode === 'On-site';
+        return seeker.mode === m;
+      });
+
+    const matchesUrgency = seekerUrgency === 'Any' || 
+      (seekerUrgency === 'High urgency (7+)' && parseInt(seeker.urgency.split('/')[0]) >= 7);
+
+    const matchesInst = seekerInst.length === 0 || 
+      seekerInst.some(inst => {
+        if (inst === 'KMC Manipal') return seeker.role.includes('KMC');
+        if (inst === 'MIT Manipal') return seeker.role.includes('MIT');
+        if (inst === 'External institution') return !seeker.role.includes('KMC') && !seeker.role.includes('MIT');
+        return false;
+      });
+
+    return matchesSearch && matchesDesignation && matchesDept && matchesDomain && 
+           matchesHIndex && matchesPubs && matchesAvail && matchesMode && 
+           matchesUrgency && matchesInst;
+  })
+
   const resetFilters = () => {
     setStatusFilter('All')
     setDomainFilter([])
@@ -96,10 +209,20 @@ export default function ResearchPage({ forceView }) {
     setIrbFilter(false)
     setDateFilter('Any')
     setSearchTerm('')
+    
+    setSeekerDesignation([])
+    setSeekerDept([])
+    setSeekerDomain([])
+    setSeekerHIndex(0)
+    setSeekerPubs(0)
+    setSeekerAvail('All')
+    setSeekerMode([])
+    setSeekerUrgency('Any')
+    setSeekerInst([])
   }
 
   // Count active filters for badge
-  const activeFilterCount = [
+  const activeFilterCount = view === 'proj' ? [
     statusFilter !== 'All',
     domainFilter.length > 0,
     typeFilter !== 'All',
@@ -108,6 +231,16 @@ export default function ResearchPage({ forceView }) {
     remoteFilter,
     irbFilter,
     dateFilter !== 'Any',
+  ].filter(Boolean).length : [
+    seekerDesignation.length > 0,
+    seekerDept.length > 0,
+    seekerDomain.length > 0,
+    seekerHIndex > 0,
+    seekerPubs > 0,
+    seekerAvail !== 'All',
+    seekerMode.length > 0,
+    seekerUrgency !== 'Any',
+    seekerInst.length > 0,
   ].filter(Boolean).length
 
   const isGuest = role === 'public'
@@ -200,106 +333,217 @@ export default function ResearchPage({ forceView }) {
 
               {/* Scrollable filter body */}
               <div style={{ maxHeight: '72vh', overflowY: 'auto', padding: '8px 0 12px' }}>
+                {view === 'proj' ? (
+                  <>
+                    {/* Status */}
+                    <FilterSection title="Status">
+                      {['All', 'Ongoing', 'Upcoming', 'Closing Soon'].map(opt => (
+                        <label key={opt} className="filter-option">
+                          <input type="radio" name="status" checked={statusFilter === opt} onChange={() => setStatusFilter(opt)} />
+                          <span className="filter-label">{opt === 'All' ? 'Open to All' : opt}</span>
+                        </label>
+                      ))}
+                    </FilterSection>
+                    <div className="filter-divider" />
 
-                {/* Status */}
-                <FilterSection title="Status">
-                  {['All', 'Ongoing', 'Upcoming', 'Closing Soon'].map(opt => (
-                    <label key={opt} className="filter-option">
-                      <input type="radio" name="status" checked={statusFilter === opt} onChange={() => setStatusFilter(opt)} />
-                      <span className="filter-label">{opt === 'All' ? 'Open to All' : opt}</span>
-                    </label>
-                  ))}
-                </FilterSection>
+                    {/* Domain */}
+                    <FilterSection title="Domain">
+                      {['Medical Imaging', 'NLP in Healthcare', 'Predictive Analytics', 'Federated Learning', 'Genomics'].map(opt => (
+                        <label key={opt} className="filter-option">
+                          <input
+                            type="checkbox"
+                            checked={domainFilter.includes(opt)}
+                            onChange={(e) => {
+                              if (e.target.checked) setDomainFilter([...domainFilter, opt])
+                              else setDomainFilter(domainFilter.filter(d => d !== opt))
+                            }}
+                          />
+                          <span className="filter-label">{opt}</span>
+                        </label>
+                      ))}
+                    </FilterSection>
+                    <div className="filter-divider" />
 
-                <div className="filter-divider" />
+                    {/* Type */}
+                    <FilterSection title="Type">
+                      {['All', 'Project', 'Paper'].map(opt => (
+                        <label key={opt} className="filter-option">
+                          <input type="radio" name="type" checked={typeFilter === opt} onChange={() => setTypeFilter(opt)} />
+                          <span className="filter-label">
+                            {opt === 'All' ? 'All types' : opt === 'Project' ? 'Research Project' : 'Paper / Publication'}
+                          </span>
+                        </label>
+                      ))}
+                    </FilterSection>
+                    <div className="filter-divider" />
 
-                {/* Domain */}
-                <FilterSection title="Domain">
-                  {['Medical Imaging', 'NLP in Healthcare', 'Predictive Analytics', 'Federated Learning', 'Genomics'].map(opt => (
-                    <label key={opt} className="filter-option">
-                      <input
-                        type="checkbox"
-                        checked={domainFilter.includes(opt)}
-                        onChange={(e) => {
-                          if (e.target.checked) setDomainFilter([...domainFilter, opt])
-                          else setDomainFilter(domainFilter.filter(d => d !== opt))
-                        }}
-                      />
-                      <span className="filter-label">{opt}</span>
-                    </label>
-                  ))}
-                </FilterSection>
+                    {/* Perks */}
+                    <FilterSection title="Collaboration Perks">
+                      {['Co-authorship', 'Letter of Recommendation', 'Clinical data access', 'Stipend / honorarium'].map(opt => (
+                        <label key={opt} className="filter-option">
+                          <input
+                            type="checkbox"
+                            checked={perksFilter.includes(opt)}
+                            onChange={(e) => {
+                              if (e.target.checked) setPerksFilter([...perksFilter, opt])
+                              else setPerksFilter(perksFilter.filter(p => p !== opt))
+                            }}
+                          />
+                          <span className="filter-label">{opt}</span>
+                        </label>
+                      ))}
+                    </FilterSection>
+                    <div className="filter-divider" />
 
-                <div className="filter-divider" />
+                    {/* Time */}
+                    <FilterSection title="Time Commitment">
+                      {['Any', 'Up to 6 hrs/week', '6-10 hrs/week', '10+ hrs/week'].map(opt => (
+                        <label key={opt} className="filter-option">
+                          <input type="radio" name="time" checked={timeFilter === opt} onChange={() => setTimeFilter(opt)} />
+                          <span className="filter-label">{opt}</span>
+                        </label>
+                      ))}
+                    </FilterSection>
+                    <div className="filter-divider" />
 
-                {/* Type */}
-                <FilterSection title="Type">
-                  {['All', 'Project', 'Paper'].map(opt => (
-                    <label key={opt} className="filter-option">
-                      <input type="radio" name="type" checked={typeFilter === opt} onChange={() => setTypeFilter(opt)} />
-                      <span className="filter-label">
-                        {opt === 'All' ? 'All types' : opt === 'Project' ? 'Research Project' : 'Paper / Publication'}
-                      </span>
-                    </label>
-                  ))}
-                </FilterSection>
+                    {/* Remote + IRB */}
+                    <FilterSection title="Other">
+                      <label className="filter-option">
+                        <input type="checkbox" checked={remoteFilter} onChange={(e) => setRemoteFilter(e.target.checked)} />
+                        <span className="filter-label">Remote collaboration possible</span>
+                      </label>
+                      <label className="filter-option">
+                        <input type="checkbox" checked={irbFilter} onChange={(e) => setIrbFilter(e.target.checked)} />
+                        <span className="filter-label">IRB approved only</span>
+                      </label>
+                    </FilterSection>
+                    <div className="filter-divider" />
 
-                <div className="filter-divider" />
-
-                {/* Perks */}
-                <FilterSection title="Collaboration Perks">
-                  {['Co-authorship', 'Letter of Recommendation', 'Clinical data access', 'Stipend / honorarium'].map(opt => (
-                    <label key={opt} className="filter-option">
-                      <input
-                        type="checkbox"
-                        checked={perksFilter.includes(opt)}
-                        onChange={(e) => {
-                          if (e.target.checked) setPerksFilter([...perksFilter, opt])
-                          else setPerksFilter(perksFilter.filter(p => p !== opt))
-                        }}
-                      />
-                      <span className="filter-label">{opt}</span>
-                    </label>
-                  ))}
-                </FilterSection>
-
-                <div className="filter-divider" />
-
-                {/* Time */}
-                <FilterSection title="Time Commitment">
-                  {['Any', 'Up to 6 hrs/week', '6-10 hrs/week', '10+ hrs/week'].map(opt => (
-                    <label key={opt} className="filter-option">
-                      <input type="radio" name="time" checked={timeFilter === opt} onChange={() => setTimeFilter(opt)} />
-                      <span className="filter-label">{opt}</span>
-                    </label>
-                  ))}
-                </FilterSection>
-
-                <div className="filter-divider" />
-
-                {/* Remote + IRB */}
-                <FilterSection title="Other">
-                  <label className="filter-option">
-                    <input type="checkbox" checked={remoteFilter} onChange={(e) => setRemoteFilter(e.target.checked)} />
-                    <span className="filter-label">Remote collaboration possible</span>
-                  </label>
-                  <label className="filter-option">
-                    <input type="checkbox" checked={irbFilter} onChange={(e) => setIrbFilter(e.target.checked)} />
-                    <span className="filter-label">IRB approved only</span>
-                  </label>
-                </FilterSection>
-
-                <div className="filter-divider" />
-
-                {/* Posted within */}
-                <FilterSection title="Posted Within">
-                  {['Any time', 'Last 7 days', 'Last 30 days'].map(opt => (
-                    <label key={opt} className="filter-option">
-                      <input type="radio" name="posted" checked={dateFilter === opt} onChange={() => setDateFilter(opt)} />
-                      <span className="filter-label">{opt}</span>
-                    </label>
-                  ))}
-                </FilterSection>
+                    {/* Posted within */}
+                    <FilterSection title="Posted Within">
+                      {['Any time', 'Last 7 days', 'Last 30 days'].map(opt => (
+                        <label key={opt} className="filter-option">
+                          <input type="radio" name="posted" checked={dateFilter === opt} onChange={() => setDateFilter(opt)} />
+                          <span className="filter-label">{opt}</span>
+                        </label>
+                      ))}
+                    </FilterSection>
+                  </>
+                ) : (
+                  <>
+                    {/* Designation */}
+                    <FilterSection title="Designation">
+                      {['Professor', 'Associate Professor', 'Assistant Professor', 'Research Scholar', 'PhD Student', 'Senior Clinician'].map(opt => (
+                        <label key={opt} className="filter-option">
+                          <input type="checkbox" checked={seekerDesignation.includes(opt)} onChange={(e) => {
+                            if (e.target.checked) setSeekerDesignation([...seekerDesignation, opt])
+                            else setSeekerDesignation(seekerDesignation.filter(d => d !== opt))
+                          }} />
+                          <span className="filter-label">{opt}</span>
+                        </label>
+                      ))}
+                    </FilterSection>
+                    <div className="filter-divider" />
+                    
+                    {/* Department */}
+                    <FilterSection title="Department">
+                      {['AI in Healthcare', 'Ophthalmology', 'Internal Medicine', 'Oncology', 'MIT Manipal (CS/ECE)'].map(opt => (
+                        <label key={opt} className="filter-option">
+                          <input type="checkbox" checked={seekerDept.includes(opt)} onChange={(e) => {
+                            if (e.target.checked) setSeekerDept([...seekerDept, opt])
+                            else setSeekerDept(seekerDept.filter(d => d !== opt))
+                          }} />
+                          <span className="filter-label">{opt}</span>
+                        </label>
+                      ))}
+                    </FilterSection>
+                    <div className="filter-divider" />
+                    
+                    {/* Expertise domain */}
+                    <FilterSection title="Expertise domain">
+                      {['Medical Imaging', 'NLP in Healthcare', 'Predictive Analytics', 'Genomics'].map(opt => (
+                        <label key={opt} className="filter-option">
+                          <input type="checkbox" checked={seekerDomain.includes(opt)} onChange={(e) => {
+                            if (e.target.checked) setSeekerDomain([...seekerDomain, opt])
+                            else setSeekerDomain(seekerDomain.filter(d => d !== opt))
+                          }} />
+                          <span className="filter-label">{opt}</span>
+                        </label>
+                      ))}
+                    </FilterSection>
+                    <div className="filter-divider" />
+                    
+                    {/* h-index & Publications */}
+                    <FilterSection title="h-index (minimum)">
+                      <div style={{ padding: '0 12px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                           <input type="range" min="0" max="50" value={seekerHIndex} onChange={(e) => setSeekerHIndex(e.target.value)} style={{ flex: 1, accentColor: 'var(--dash-navy)' }} />
+                           <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--dash-navy)', width: '20px' }}>{seekerHIndex}</span>
+                        </div>
+                      </div>
+                    </FilterSection>
+                    <div className="filter-divider" />
+                    
+                    <FilterSection title="Publications (minimum)">
+                      <div style={{ padding: '0 12px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                           <input type="range" min="0" max="100" value={seekerPubs} onChange={(e) => setSeekerPubs(e.target.value)} style={{ flex: 1, accentColor: 'var(--dash-navy)' }} />
+                           <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--dash-navy)', width: '20px' }}>{seekerPubs}</span>
+                        </div>
+                      </div>
+                    </FilterSection>
+                    <div className="filter-divider" />
+                    
+                    {/* Availability */}
+                    <FilterSection title="Availability">
+                      {['All', 'Available now'].map(opt => (
+                        <label key={opt} className="filter-option">
+                          <input type="radio" name="availability" checked={seekerAvail === opt} onChange={() => setSeekerAvail(opt)} />
+                          <span className="filter-label">{opt}</span>
+                        </label>
+                      ))}
+                    </FilterSection>
+                    <div className="filter-divider" />
+                    
+                    {/* Mode preference */}
+                    <FilterSection title="Mode preference">
+                      {['Remote', 'On-site (Manipal)', 'Hybrid'].map(opt => (
+                        <label key={opt} className="filter-option">
+                          <input type="checkbox" checked={seekerMode.includes(opt)} onChange={(e) => {
+                            if (e.target.checked) setSeekerMode([...seekerMode, opt])
+                            else setSeekerMode(seekerMode.filter(d => d !== opt))
+                          }} />
+                          <span className="filter-label">{opt}</span>
+                        </label>
+                      ))}
+                    </FilterSection>
+                    <div className="filter-divider" />
+                    
+                    {/* Urgency level */}
+                    <FilterSection title="Urgency level">
+                      {['Any', 'High urgency (7+)'].map(opt => (
+                        <label key={opt} className="filter-option">
+                          <input type="radio" name="urgency" checked={seekerUrgency === opt} onChange={() => setSeekerUrgency(opt)} />
+                          <span className="filter-label">{opt}</span>
+                        </label>
+                      ))}
+                    </FilterSection>
+                    <div className="filter-divider" />
+                    
+                    {/* Institution */}
+                    <FilterSection title="Institution">
+                      {['KMC Manipal', 'MIT Manipal', 'External institution'].map(opt => (
+                        <label key={opt} className="filter-option">
+                          <input type="checkbox" checked={seekerInst.includes(opt)} onChange={(e) => {
+                            if (e.target.checked) setSeekerInst([...seekerInst, opt])
+                            else setSeekerInst(seekerInst.filter(d => d !== opt))
+                          }} />
+                          <span className="filter-label">{opt}</span>
+                        </label>
+                      ))}
+                    </FilterSection>
+                  </>
+                )}
               </div>
 
               {/* Apply button */}
@@ -313,7 +557,7 @@ export default function ResearchPage({ forceView }) {
                     fontFamily: "'DM Sans', sans-serif",
                   }}
                 >
-                  Show {filteredProjects.length} Results
+                  Show {view === 'proj' ? filteredProjects.length : filteredSeekers.length} Results
                 </button>
               </div>
             </div>
@@ -324,14 +568,30 @@ export default function ResearchPage({ forceView }) {
       {/* Active filter chips */}
       {activeFilterCount > 0 && (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '16px', marginTop: '-8px' }}>
-          {statusFilter !== 'All' && <FilterChip label={`Status: ${statusFilter}`} onRemove={() => setStatusFilter('All')} />}
-          {domainFilter.map(d => <FilterChip key={d} label={d} onRemove={() => setDomainFilter(domainFilter.filter(x => x !== d))} />)}
-          {typeFilter !== 'All' && <FilterChip label={`Type: ${typeFilter}`} onRemove={() => setTypeFilter('All')} />}
-          {timeFilter !== 'Any' && <FilterChip label={timeFilter} onRemove={() => setTimeFilter('Any')} />}
-          {perksFilter.map(p => <FilterChip key={p} label={p} onRemove={() => setPerksFilter(perksFilter.filter(x => x !== p))} />)}
-          {remoteFilter && <FilterChip label="Remote" onRemove={() => setRemoteFilter(false)} />}
-          {irbFilter && <FilterChip label="IRB Approved" onRemove={() => setIrbFilter(false)} />}
-          {dateFilter !== 'Any' && <FilterChip label={dateFilter} onRemove={() => setDateFilter('Any')} />}
+          {view === 'proj' ? (
+            <>
+              {statusFilter !== 'All' && <FilterChip label={`Status: ${statusFilter}`} onRemove={() => setStatusFilter('All')} />}
+              {domainFilter.map(d => <FilterChip key={d} label={d} onRemove={() => setDomainFilter(domainFilter.filter(x => x !== d))} />)}
+              {typeFilter !== 'All' && <FilterChip label={`Type: ${typeFilter}`} onRemove={() => setTypeFilter('All')} />}
+              {timeFilter !== 'Any' && <FilterChip label={timeFilter} onRemove={() => setTimeFilter('Any')} />}
+              {perksFilter.map(p => <FilterChip key={p} label={p} onRemove={() => setPerksFilter(perksFilter.filter(x => x !== p))} />)}
+              {remoteFilter && <FilterChip label="Remote" onRemove={() => setRemoteFilter(false)} />}
+              {irbFilter && <FilterChip label="IRB Approved" onRemove={() => setIrbFilter(false)} />}
+              {dateFilter !== 'Any' && <FilterChip label={dateFilter} onRemove={() => setDateFilter('Any')} />}
+            </>
+          ) : (
+            <>
+              {seekerDesignation.map(d => <FilterChip key={d} label={d} onRemove={() => setSeekerDesignation(seekerDesignation.filter(x => x !== d))} />)}
+              {seekerDept.map(d => <FilterChip key={d} label={d} onRemove={() => setSeekerDept(seekerDept.filter(x => x !== d))} />)}
+              {seekerDomain.map(d => <FilterChip key={d} label={d} onRemove={() => setSeekerDomain(seekerDomain.filter(x => x !== d))} />)}
+              {seekerHIndex > 0 && <FilterChip label={`h-index: ${seekerHIndex}+`} onRemove={() => setSeekerHIndex(0)} />}
+              {seekerPubs > 0 && <FilterChip label={`Pubs: ${seekerPubs}+`} onRemove={() => setSeekerPubs(0)} />}
+              {seekerAvail !== 'All' && <FilterChip label={seekerAvail} onRemove={() => setSeekerAvail('All')} />}
+              {seekerMode.map(m => <FilterChip key={m} label={m} onRemove={() => setSeekerMode(seekerMode.filter(x => x !== m))} />)}
+              {seekerUrgency !== 'Any' && <FilterChip label={seekerUrgency} onRemove={() => setSeekerUrgency('Any')} />}
+              {seekerInst.map(i => <FilterChip key={i} label={i} onRemove={() => setSeekerInst(seekerInst.filter(x => x !== i))} />)}
+            </>
+          )}
           <button
             onClick={resetFilters}
             style={{ fontSize: '12px', color: '#6b7280', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', padding: '2px 6px' }}
@@ -343,10 +603,16 @@ export default function ResearchPage({ forceView }) {
 
       {/* MAIN CONTENT — full width, no sidebar */}
       <div className="proj-grid">
-        {filteredProjects.map(project => (
-          <PremiumProjectCard key={project.id} project={project} />
-        ))}
-        {filteredProjects.length === 0 && (
+        {view === 'seeker' ? (
+          filteredSeekers.map(seeker => (
+            <PremiumSeekerCard key={seeker.id} seeker={seeker} />
+          ))
+        ) : (
+          filteredProjects.map(project => (
+            <PremiumProjectCard key={project.id} project={project} />
+          ))
+        )}
+        {view === 'proj' && filteredProjects.length === 0 && (
           <div className="col-span-full py-20 text-center text-gray-400 bg-white rounded-3xl border border-dashed border-gray-200">
             <Search className="mx-auto mb-4 opacity-10" size={48} />
             <h3 className="text-lg font-bold text-gray-600">No matches found</h3>
@@ -444,6 +710,54 @@ function PremiumProjectCard({ project }) {
           className="pc-premium-btn"
         >
           VIEW DETAIL
+        </button>
+      </div>
+    </div>
+  )
+}
+
+
+function PremiumSeekerCard({ seeker }) {
+  const navigate = useNavigate();
+  
+  return (
+    <div className="proj-card-premium group hover-lift" onClick={() => navigate('/login')}>
+      <div className="pc-premium-header">
+        <div className="pc-premium-pi">
+          <div className="pc-premium-av">{seeker.initials}</div>
+          <div className="pc-premium-pi-info">
+            <span className="pc-premium-pi-name">{seeker.name}</span>
+            <span className="pc-premium-pi-role">{seeker.role}</span>
+          </div>
+        </div>
+      </div>
+
+      <h3 className="pc-premium-title text-sm mt-2 mb-1" style={{ fontSize: '14px', lineHeight: '1.4' }}>
+        Seeking: {seeker.seeking}
+      </h3>
+      
+      <div className="pc-premium-meta mb-3" style={{ fontSize: '12px' }}>
+        <span className="font-semibold text-gray-700">{seeker.hIndex}</span> h-index &nbsp;·&nbsp; <span className="font-semibold text-gray-700">{seeker.publications}</span> publications &nbsp;·&nbsp; {seeker.mode}
+      </div>
+
+      <div className="pc-premium-tags">
+        <span className="pc-premium-tag" style={{ background: seeker.status === 'Available' ? 'var(--dash-green-soft)' : '#fee2e2', color: seeker.status === 'Available' ? 'var(--dash-green)' : '#dc2626' }}>
+          {seeker.status}
+        </span>
+        {seeker.skills?.slice(0, 3).map(skill => (
+          <span key={skill} className="pc-premium-tag">{skill}</span>
+        ))}
+      </div>
+
+      <div className="pc-premium-footer">
+        <button 
+          onClick={(e) => { 
+            e.stopPropagation(); 
+            navigate('/login'); 
+          }} 
+          className="pc-premium-btn"
+        >
+          VIEW PROFILE
         </button>
       </div>
     </div>
