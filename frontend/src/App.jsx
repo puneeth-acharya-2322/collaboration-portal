@@ -8,6 +8,7 @@ import AdminLogin from './pages/AdminLogin.jsx'
 import AdminDashboard from './pages/AdminDashboard.jsx'
 import ProtectedRoute from './components/ProtectedRoute.jsx'
 import AuthPage from './pages/AuthPage.jsx'
+import Dashboard from './pages/Dashboard.jsx'
 import { useUser } from './context/UserContext.jsx'
 import { Mail, MapPin } from 'lucide-react'
 import logo from './assets/logo.webp'
@@ -27,7 +28,10 @@ export default function App() {
   // Routes that render DashboardLayout (260px fixed sidebar) for public/guest users
   const discoveryRoutes = ['/', '/research', '/collaborators', '/preferences', '/collaborate', '/matches', '/profile']
   const authRoutes = ['/login', '/admin/login', '/register']
-  const isGuestDiscovery = (discoveryRoutes.includes(location.pathname) && role === 'public') || authRoutes.includes(location.pathname)
+  const isGuestDiscovery = (discoveryRoutes.includes(location.pathname) && role === 'public')
+    || authRoutes.includes(location.pathname)
+    || location.pathname.startsWith('/dashboard')
+    || location.pathname.startsWith('/admin')
   // Sidebar is visible only when on discovery routes AND user is public (guest)
   const hasSidebar = discoveryRoutes.includes(location.pathname) && role === 'public'
 
@@ -49,15 +53,11 @@ export default function App() {
           <Route path="/login" element={<AuthPage />} />
           <Route path="/register" element={<AuthPage />} />
           <Route path="/completed" element={<CompletedPage />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/dashboard/*" element={<Dashboard />} />
           <Route path="/admin/login" element={<AdminLogin />} />
-          <Route
-            path="/admin/*"
-            element={
-              <ProtectedRoute>
-                <AdminDashboard />
-              </ProtectedRoute>
-            }
-          />
+          <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+          <Route path="/admin/*" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
         </Routes>
       </main>
       <Footer hasSidebar={hasSidebar} />

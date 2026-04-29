@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useUser } from '../context/UserContext'
 import { Loader2, Eye, EyeOff, ChevronRight, ChevronLeft } from 'lucide-react'
 import logo from '../assets/logo.jpeg'
@@ -102,7 +102,8 @@ function StepBar({ step }) {
 const API = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
 export default function AuthPage() {
-  const [isLogin,    setIsLogin]    = useState(true)
+  const location = useLocation()
+  const [isLogin,    setIsLogin]    = useState(location.pathname !== '/register')
   const [regStep,    setRegStep]    = useState(0)
   const [regSuccess, setRegSuccess] = useState(false)
   const [loading,    setLoading]    = useState(false)
@@ -159,7 +160,7 @@ export default function AuthPage() {
       setRole('user')
       const initials = (data.name || 'Dr Researcher').split(' ').map(n => n[0]).join('')
       setUser({ name: data.name || 'Dr. Researcher', initials, id: data.id || 'FYRC-2401' })
-      navigate('/collaborate')
+      navigate('/dashboard')
     } catch (err) {
       setError(err.message)
     } finally {
